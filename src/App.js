@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import { ThemeContext, themes } from "./theme";
 import Landing from "./landing";
+import Menu from "./menu-components/menu";
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
         <Router>
           <Switch>
             <Route path="/menu">
-              <div> hi </div>
+              <Menu />
             </Route>
             <Route path="/">
               <Landing />

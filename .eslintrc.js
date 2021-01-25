@@ -24,5 +24,13 @@ module.exports = {
       },
     ],
     "prettier/prettier": "warn",
+    "jsx-a11y/label-has-associated-control": [
+      2,
+      {
+        labelAttributes: ["label"],
+        controlComponents: ["InputStyle"],
+        depth: 3,
+      },
+    ],
   },
 };
