@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TextField } from "@material-ui/core";
+import { ButtonBase, TextField } from "@material-ui/core";
 import styled, { css } from "styled-components";
 
 // Login form
@@ -72,12 +72,17 @@ export const Header = styled.div`
   -webkit-box-shadow: 3px -7px 11px 11px rgba(0, 0, 0, 0.3); /*Saf3-4, Chrome, iOS 4.0.2-4.2, Android 2.3+*/
   box-shadow: 3px -7px 11px 11px rgba(0, 0, 0, 0.3); /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
   filter: progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=135, Color=#000000); /*IE 5.5-7*/
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 `;
 
 // Categories
 
 const selected = css`
-  border: 3px solid black;
+  border: 2px solid black;
+  background-color: #a5a5a5;
+  font-weight: bold;
 `;
 
 export const CategoryButton = styled.button`
@@ -121,8 +126,8 @@ export const CategoryButton = styled.button`
 
 export const CategoriesContainer = styled.div`
   width: 100%;
-  height: 80vh;
-  margin-top: 25px;
+  height: 90vh;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -146,5 +151,68 @@ export const CategoriesImageContainer = styled.div`
     flex-direction: row;
     justify-content: center;
     flex-wrap: wrap;
+  }
+`;
+
+// Foods section
+
+export const FoodsSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+
+  @media only screen and (max-width: 600px) {
+    margin: auto;
+    margin-top: 8px;
+  }
+
+  @media only screen and (min-width: 600px) {
+    min-height: 150px;
+    min-width: 360px;
+    overflow: hidden;
+    height: 1%;
+    margin: 10px;
+    margin-top: 15px;
+    min-width: 300px;
+    justify-content: flex-start;
+  }
+`;
+
+export const FoodThumbnail = styled(ButtonBase)`
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=315, Color=#000000)"; /*IE 8*/
+  -moz-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*FF 3.5+*/
+  -webkit-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*Saf3-4, Chrome, iOS 4.0.2-4.2, Android 2.3+*/
+  box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
+  filter: progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=135, Color=#000000); /*IE 5.5-7*/
+`;
+
+export const FoodImageThumbnail = styled.div`
+  background-image: ${({ src }) => `url(${src})`};
+  background-size: contain;
+  width: 44vw;
+  min-width: 50px;
+  height: 120px;
+  @media only screen and (min-width: 600px) {
+    width: 180px;
+    height: 150px;
+  }
+`;
+
+export const FoodNameThumbnail = styled.div`
+  font-size: 24px;
+  font-weight: 500;
+  margin-top: 5px;
+`;
+
+export const FoodPadding = styled.div`
+  margin-bottom: 8px;
+  margin-top: 8px;
+  @media only screen and (min-width: 600px) {
+    margin: 8px;
   }
 `;

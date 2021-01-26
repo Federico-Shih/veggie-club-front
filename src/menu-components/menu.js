@@ -1,27 +1,21 @@
 import React, { useState, useEffect } from "react";
-import {
-  Link,
-  Switch,
-  useRouteMatch,
-  Route,
-  useHistory,
-  useLocation,
-} from "react-router-dom";
+import { Link, Switch, Route, useHistory, useLocation } from "react-router-dom";
 import withSizes from "react-sizes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCog,
   faThList,
   faWindowClose,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import { SyncLoader } from "react-spinners";
-import { Button } from "@material-ui/core";
+import { Box, Button } from "@material-ui/core";
 
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
 import { ThemeContext } from "../theme";
-import { login, categoryCall } from "./calls";
+import { login, getCategories, getFoods } from "./calls";
 import {
   Header,
   InputStyle,
@@ -30,66 +24,143 @@ import {
   CategoryButton,
   CategoriesContainer,
   CategoriesImageContainer,
+  FoodsSection,
+  FoodThumbnail,
+  FoodImageThumbnail,
+  FoodNameThumbnail,
+  FoodPadding,
 } from "./menu.styled";
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 // Both versions of the menu
 
 function NormalMenu({ mobile }) {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setCategory] = useState("");
+  const [foods, setFoods] = useState([]);
+
+  const history = useHistory();
+  const { pathname: path } = useLocation();
+
+  const categoryClickHandler = async (category) => {
+    history.push(`${path}?categoria=${category}`);
+    const foodCall = await getFoods(category, new Date().getDay());
+    setFoods(foodCall);
+  };
 
   useEffect(() => {
     setLoadingCategory(true);
-    categoryCall().then((result) => {
+    getCategories().then(async (result) => {
       setLoadingCategory(false);
       setCategories(result);
       if (result.length !== 0) {
-        setCategory(result[0].text);
+        const category = result[0].text;
+        if (!mobile) {
+          categoryClickHandler(category);
+        }
       }
     });
   }, []);
 
+  const selectedCategory = useQuery().get("categoria");
+
+  const CategorySection = ({ theme }) => (
+    <CategoriesContainer color={theme.primary}>
+      <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
+      {mobile ? (
+        <hr
+          style={{
+            color: "black",
+            width: "80%",
+          }}
+        />
+      ) : null}
+      {loadingCategory ? (
+        <SyncLoader size={10} style={{ top: "50%" }} />
+      ) : (
+        <CategoriesImageContainer>
+          {categories.length !== 0 ? (
+            categories.map(({ text: category, img }) => {
+              return (
+                <CategoryButton
+                  onClick={() => {
+                    categoryClickHandler(category);
+                  }}
+                  key={category}
+                  src={img}
+                  active={category === selectedCategory}
+                >
+                  <div
+                    style={
+                      mobile
+                        ? {
+                            color: "white",
+                            fontSize: "25px",
+                            fontWeight: 500,
+                          }
+                        : {}
+                    }
+                  >
+                    {category}
+                  </div>
+                </CategoryButton>
+              );
+            })
+          ) : (
+            <div
+              style={
+                mobile
+                  ? { textAlign: "center" }
+                  : { fontSize: "16px", textAlign: "center", marginTop: "20px" }
+              }
+            >
+              No hay categorías todavía
+            </div>
+          )}
+        </CategoriesImageContainer>
+      )}
+    </CategoriesContainer>
+  );
+
+  CategorySection.propTypes = {
+    theme: PropTypes.shape({
+      primary: PropTypes.string,
+    }),
+  };
+
+  CategorySection.defaultProps = {
+    theme: {
+      primary: "white",
+    },
+  };
+
   return (
     <ThemeContext.Consumer>
       {(theme) => (
-        <>
-          <CategoriesContainer color={theme.primary}>
-            <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
-            {loadingCategory ? (
-              <SyncLoader size={10} style={{ top: "50%" }} />
-            ) : (
-              <CategoriesImageContainer>
-                {categories.map(({ text: category, img }) => {
-                  return (
-                    <CategoryButton
-                      onClick={() => {
-                        setCategory(category);
-                      }}
-                      key={category}
-                      src={img}
-                      active={category === selectedCategory}
-                    >
-                      <div
-                        style={
-                          mobile
-                            ? {
-                                color: "white",
-                                fontSize: "25px",
-                                fontWeight: 500,
-                              }
-                            : {}
-                        }
-                      >
-                        {category}
-                      </div>
-                    </CategoryButton>
-                  );
-                })}
-              </CategoriesImageContainer>
-            )}
-          </CategoriesContainer>
-        </>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          {!mobile || (mobile && !selectedCategory) ? (
+            <CategorySection theme={theme} />
+          ) : null}
+          {!mobile || (mobile && selectedCategory) ? (
+            <FoodsSection>
+              {foods.length !== 0 ? (
+                foods.map(({ name, description, img, id }) => (
+                  <FoodPadding key={id}>
+                    <FoodThumbnail>
+                      <FoodImageThumbnail src={img} />
+                      <FoodNameThumbnail>{name}</FoodNameThumbnail>
+                    </FoodThumbnail>
+                  </FoodPadding>
+                ))
+              ) : (
+                <div>No hay comida para esta categoria</div>
+              )}
+            </FoodsSection>
+          ) : null}
+        </div>
       )}
     </ThemeContext.Consumer>
   );
@@ -121,15 +192,13 @@ function Menu({ mobile }) {
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
 
-  const { path } = useRouteMatch();
   const history = useHistory();
-  const { pathname } = useLocation();
-
+  const { pathname: path } = useLocation();
   useEffect(() => {
-    if (pathname === "/menu") {
+    if (path === "/menu") {
       setAdmin(false);
     }
-  }, [pathname]);
+  }, [path]);
 
   const setLogin = (status) => {
     if (!status) {
@@ -139,14 +208,14 @@ function Menu({ mobile }) {
     setLog(status);
   };
 
-  function switchAdmin() {
+  const switchAdmin = () => {
     if (admin) {
       history.goBack();
       setAdmin(false);
     } else {
       setLogin(true);
     }
-  }
+  };
 
   const handleChange = (setter) => {
     return ({ target }) => {
@@ -172,18 +241,29 @@ function Menu({ mobile }) {
     }
   };
 
+  const searchQuery = useQuery().get("categoria");
+
   return (
     <ThemeContext.Consumer>
       {(theme) => (
         <>
           <Header color={theme.secondary}>
-            <Link to="/">
-              <img
-                src={mobile ? Smologo : Logo}
-                alt="logo"
-                height={mobile ? 40 : 35}
-                style={{ marginLeft: "10px" }}
-              />
+            <Link to={searchQuery && mobile ? "/menu" : "/"}>
+              {searchQuery && mobile ? (
+                <FontAwesomeIcon
+                  icon={faArrowLeft}
+                  size="2x"
+                  style={{ margin: "8px" }}
+                  color="black"
+                />
+              ) : (
+                <img
+                  src={mobile ? Smologo : Logo}
+                  alt="logo"
+                  height={mobile ? 40 : 35}
+                  style={{ marginLeft: "10px" }}
+                />
+              )}
             </Link>
             <div
               style={{
@@ -202,11 +282,11 @@ function Menu({ mobile }) {
             />
           </Header>
           <Switch>
-            <Route exact path={path}>
-              <NormalMenu mobile={mobile} />
-            </Route>
-            <Route exact path={`${path}/settings`}>
+            <Route exact path="/menu/settings">
               <AdminMenu mobile={mobile} />
+            </Route>
+            <Route exact path="/menu">
+              <NormalMenu mobile={mobile} />
             </Route>
           </Switch>
           <LoginContainer active={loggingIn}>

@@ -3,11 +3,9 @@ import { Link } from "react-router-dom";
 
 export const Header = styled.div`
   width: 100%;
-  height: 60vh;
   display: flex;
   align-items: center;
   flex-direction: column;
-
   @media only screen and (max-width: 600px) {
     height: 130px;
     background-color: ${({ color }) => color};
@@ -39,13 +37,14 @@ export const LogoContainer = styled.div`
     background-color: white;
     border-radius: 50%;
     padding: 20px;
+    margin-top: 50px;
+    margin-bottom: 50px;
   }
 `;
 
 export const ImageBackground = styled.div`
   @media only screen and (min-width: 600px) {
     width: 100%;
-    height: 40vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,8 +59,18 @@ export const ImageBackground = styled.div`
 export const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-evenly;
-  padding-top: 20px;
+  margin-top: 20px;
   width: 80vw;
+`;
+
+export const SloganContainer = styled.div`
+  font-weight: bold;
+  font-size: 20px;
+  margin-top: 20px;
+  @media only screen and (min-width: 600px) {
+    font-size: 40px;
+    margin-top: 60px;
+  }
 `;
 
 const LinkStyle = `

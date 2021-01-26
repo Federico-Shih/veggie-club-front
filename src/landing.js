@@ -27,6 +27,7 @@ import {
   Footer,
   DecorationTitle,
   InfoContainer,
+  SloganContainer,
 } from "./landing.styled";
 
 function Landing({ mobile }) {
@@ -46,14 +47,14 @@ function Landing({ mobile }) {
                         src={ShortLogo}
                         alt="veggie-club-short"
                         style={{ objectFit: "contain" }}
-                        width={150}
+                        width={180}
                       />
                     )}
                     <img
                       src={Logo}
                       alt="veggie-club"
                       style={{ objectFit: "contain" }}
-                      width={mobile ? 200 : 240}
+                      width={mobile ? 200 : 170}
                       height={mobile ? 50 : null}
                     />
                   </LogoContainer>
@@ -64,24 +65,9 @@ function Landing({ mobile }) {
                   <StyledPageMark href="#CONTACTO">CONTACTO</StyledPageMark>
                 </ButtonContainer>
               </Header>
-              <div
-                style={
-                  mobile
-                    ? {
-                        fontWeight: "bold",
-                        fontSize: "20px",
-                        paddingTop: "20px",
-                      }
-                    : {
-                        fontWeight: "bold",
-                        fontSize: "40px",
-                        paddingTop: "30px",
-                      }
-                }
-                id="NOSOTROS"
-              >
+              <SloganContainer id="NOSOTROS">
                 SE TRATA DE COMER BIEN
-              </div>
+              </SloganContainer>
               <DecorationContainer>
                 <Decoration color={theme.secondary}>
                   <img

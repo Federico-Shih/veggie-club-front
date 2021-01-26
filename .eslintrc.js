@@ -32,5 +32,6 @@ module.exports = {
         depth: 3,
       },
     ],
+    "no-unused-vars": "warn",
   },
 };
