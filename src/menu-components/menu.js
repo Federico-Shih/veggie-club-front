@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import PropTypes from "prop-types";
 import { SyncLoader } from "react-spinners";
-import { Box, Button } from "@material-ui/core";
+import { Button } from "@material-ui/core";
 
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
@@ -30,15 +30,23 @@ import {
   FoodNameThumbnail,
   FoodPadding,
 } from "./menu.styled";
+import { FocusShadow, LoaderWrapper } from "../components/utilities";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 // Both versions of the menu
-
 function NormalMenu({ mobile }) {
   const [loadingCategory, setLoadingCategory] = useState(false);
+  const [loadingFoods, setLoadingFoods] = useState(false);
+
+  const [showedFood, setShowedFood] = useState({
+    name: null,
+    id: "null",
+    description: null,
+    img: null,
+  });
   const [categories, setCategories] = useState([]);
   const [foods, setFoods] = useState([]);
 
@@ -46,23 +54,26 @@ function NormalMenu({ mobile }) {
   const { pathname: path } = useLocation();
 
   const categoryClickHandler = async (category) => {
+    setLoadingFoods(true);
     history.push(`${path}?categoria=${category}`);
     const foodCall = await getFoods(category, new Date().getDay());
     setFoods(foodCall);
+    setLoadingFoods(false);
   };
 
-  useEffect(() => {
+  useEffect(async () => {
     setLoadingCategory(true);
-    getCategories().then(async (result) => {
-      setLoadingCategory(false);
-      setCategories(result);
-      if (result.length !== 0) {
-        const category = result[0].text;
+    const categoryList = await getCategories();
+    if (categoryList.length !== 0) {
+      setCategories(categoryList);
+      if (categoryList.length !== 0) {
+        const category = categoryList[0].text;
         if (!mobile) {
           categoryClickHandler(category);
         }
       }
-    });
+    }
+    setLoadingCategory(false);
   }, []);
 
   const selectedCategory = useQuery().get("categoria");
@@ -78,9 +89,10 @@ function NormalMenu({ mobile }) {
           }}
         />
       ) : null}
-      {loadingCategory ? (
-        <SyncLoader size={10} style={{ top: "50%" }} />
-      ) : (
+      <LoaderWrapper
+        Loader={<SyncLoader size={10} style={{ top: "50%" }} />}
+        loading={loadingCategory}
+      >
         <CategoriesImageContainer>
           {categories.length !== 0 ? (
             categories.map(({ text: category, img }) => {
@@ -121,7 +133,10 @@ function NormalMenu({ mobile }) {
             </div>
           )}
         </CategoriesImageContainer>
-      )}
+      </LoaderWrapper>
+      <FocusShadow active={showedFood.id} setActive={setShowedFood}>
+        <div>hi</div>
+      </FocusShadow>
     </CategoriesContainer>
   );
 
@@ -146,18 +161,25 @@ function NormalMenu({ mobile }) {
           ) : null}
           {!mobile || (mobile && selectedCategory) ? (
             <FoodsSection>
-              {foods.length !== 0 ? (
-                foods.map(({ name, description, img, id }) => (
-                  <FoodPadding key={id}>
-                    <FoodThumbnail>
-                      <FoodImageThumbnail src={img} />
-                      <FoodNameThumbnail>{name}</FoodNameThumbnail>
-                    </FoodThumbnail>
-                  </FoodPadding>
-                ))
-              ) : (
-                <div>No hay comida para esta categoria</div>
-              )}
+              <LoaderWrapper
+                Loader={<SyncLoader size={10} style={{ top: "50%" }} />}
+                loading={loadingFoods}
+              >
+                <>
+                  {foods.length !== 0 ? (
+                    foods.map(({ name, description, img, id }) => (
+                      <FoodPadding key={id}>
+                        <FoodThumbnail>
+                          <FoodImageThumbnail src={img} />
+                          <FoodNameThumbnail>{name}</FoodNameThumbnail>
+                        </FoodThumbnail>
+                      </FoodPadding>
+                    ))
+                  ) : (
+                    <div>No hay comida para esta categoria</div>
+                  )}
+                </>
+              </LoaderWrapper>
             </FoodsSection>
           ) : null}
         </div>

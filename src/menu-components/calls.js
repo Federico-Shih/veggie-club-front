@@ -30,13 +30,15 @@ export const getCategories = () => {
 export const getFoods = (category, day) => {
   console.log(category, day);
   return new Promise((resolve) => {
-    resolve(
-      Array.from({ length: 20 }).map(() => ({
-        name: "adsasd",
-        description: "fuuuu",
-        img: placeholder,
-        id: uuid(),
-      }))
-    );
+    setTimeout(() => {
+      resolve(
+        Array.from({ length: 20 }).map(() => ({
+          name: "adsasd",
+          description: "fuuuu",
+          img: placeholder,
+          id: uuid(),
+        }))
+      );
+    }, 0);
   });
 };

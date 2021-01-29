@@ -74,7 +74,7 @@ export const Header = styled.div`
   filter: progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=135, Color=#000000); /*IE 5.5-7*/
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 999;
 `;
 
 // Categories
@@ -155,7 +155,6 @@ export const CategoriesImageContainer = styled.div`
 `;
 
 // Foods section
-
 export const FoodsSection = styled.div`
   display: flex;
   flex-direction: row;
@@ -215,4 +214,15 @@ export const FoodPadding = styled.div`
   @media only screen and (min-width: 600px) {
     margin: 8px;
   }
+`;
+
+// Image shower
+export const ImageShadow = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
 `;
