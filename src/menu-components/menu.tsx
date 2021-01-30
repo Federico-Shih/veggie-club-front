@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { Link, Switch, Route, useHistory, useLocation } from "react-router-dom";
-import withSizes from "react-sizes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useWindowWidth } from "@react-hook/window-size";
 import {
   faCog,
   faThList,
@@ -14,7 +14,7 @@ import { Button } from "@material-ui/core";
 
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
-import { ThemeContext } from "../theme";
+import { ThemeContext, Theme } from "../theme";
 import { login, getCategories, getFoods } from "./calls";
 import {
   Header,
@@ -29,31 +29,27 @@ import {
   FoodImageThumbnail,
   FoodNameThumbnail,
   FoodPadding,
-} from "./menu.styled";
+} from "./menu.styles";
 import { FocusShadow, LoaderWrapper } from "../components/utilities";
+import { Category, Food, NullFood, NullCategoryArray, NullFoodArray } from './types';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 // Both versions of the menu
-function NormalMenu({ mobile }) {
+function NormalMenu() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
 
-  const [showedFood, setShowedFood] = useState({
-    name: null,
-    id: "null",
-    description: null,
-    img: null,
-  });
-  const [categories, setCategories] = useState([]);
-  const [foods, setFoods] = useState([]);
+  const [showedFood, setShowedFood] = useState(NullFood);
+  const [categories, setCategories] = useState(NullCategoryArray);
+  const [foods, setFoods] = useState(NullFoodArray);
 
   const history = useHistory();
   const { pathname: path } = useLocation();
 
-  const categoryClickHandler = async (category) => {
+  const categoryClickHandler = async (category: string) => {
     setLoadingFoods(true);
     history.push(`${path}?categoria=${category}`);
     const foodCall = await getFoods(category, new Date().getDay());
@@ -61,24 +57,27 @@ function NormalMenu({ mobile }) {
     setLoadingFoods(false);
   };
 
-  useEffect(async () => {
+  useEffect(() => {
     setLoadingCategory(true);
-    const categoryList = await getCategories();
-    if (categoryList.length !== 0) {
-      setCategories(categoryList);
+    const asyncEffect = async () => {
+      const categoryList = await getCategories();
       if (categoryList.length !== 0) {
-        const category = categoryList[0].text;
-        if (!mobile) {
-          categoryClickHandler(category);
+        setCategories(categoryList);
+        if (categoryList.length !== 0) {
+          const category = categoryList[0].text;
+          if (!mobile) {
+            categoryClickHandler(category);
+          }
         }
       }
-    }
-    setLoadingCategory(false);
+      setLoadingCategory(false);
+    };
+    asyncEffect();
   }, []);
 
   const selectedCategory = useQuery().get("categoria");
 
-  const CategorySection = ({ theme }) => (
+  const CategorySection = ({ theme }: { theme: Theme}) => (
     <CategoriesContainer color={theme.primary}>
       <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
       {mobile ? (
@@ -90,7 +89,7 @@ function NormalMenu({ mobile }) {
         />
       ) : null}
       <LoaderWrapper
-        Loader={<SyncLoader size={10} style={{ top: "50%" }} />}
+        Loader={<SyncLoader size={10} />}
         loading={loadingCategory}
       >
         <CategoriesImageContainer>
@@ -134,7 +133,7 @@ function NormalMenu({ mobile }) {
           )}
         </CategoriesImageContainer>
       </LoaderWrapper>
-      <FocusShadow active={showedFood.id} setActive={setShowedFood}>
+      <FocusShadow active={showedFood.id !== null} setActive={setShowedFood}>
         <div>hi</div>
       </FocusShadow>
     </CategoriesContainer>
@@ -150,7 +149,9 @@ function NormalMenu({ mobile }) {
     theme: {
       primary: "white",
     },
-  };
+  }; 
+
+  const mobile = useWindowWidth() < 600;
 
   return (
     <ThemeContext.Consumer>
@@ -162,7 +163,7 @@ function NormalMenu({ mobile }) {
           {!mobile || (mobile && selectedCategory) ? (
             <FoodsSection>
               <LoaderWrapper
-                Loader={<SyncLoader size={10} style={{ top: "50%" }} />}
+                Loader={<SyncLoader size={10} />}
                 loading={loadingFoods}
               >
                 <>
@@ -192,12 +193,10 @@ NormalMenu.propTypes = {
   mobile: PropTypes.bool.isRequired,
 };
 
-function AdminMenu({ mobile }) {
-  console.log(mobile);
+function AdminMenu() {
   return (
     <div>
       admin menu
-      {mobile}
     </div>
   );
 }
@@ -208,7 +207,7 @@ AdminMenu.propTypes = {
 
 // Menu with the router switch and header
 
-function Menu({ mobile }) {
+function Menu() {
   const [admin, setAdmin] = useState(false);
   const [loggingIn, setLog] = useState(false);
   const [username, setUser] = useState("");
@@ -216,13 +215,14 @@ function Menu({ mobile }) {
 
   const history = useHistory();
   const { pathname: path } = useLocation();
+
   useEffect(() => {
     if (path === "/menu") {
       setAdmin(false);
     }
   }, [path]);
 
-  const setLogin = (status) => {
+  const setLogin = (status : boolean) => {
     if (!status) {
       setUser("");
       setPass("");
@@ -239,11 +239,12 @@ function Menu({ mobile }) {
     }
   };
 
-  const handleChange = (setter) => {
+  
+  function handleChange (setter: (arg: string) => void) : ({ target }: ChangeEvent<HTMLInputElement>) => void {
     return ({ target }) => {
       setter(target.value);
     };
-  };
+  }
 
   const validate = () => {
     if (
@@ -262,6 +263,8 @@ function Menu({ mobile }) {
       });
     }
   };
+
+  const mobile = useWindowWidth() < 600;
 
   const searchQuery = useQuery().get("categoria");
 
@@ -356,12 +359,4 @@ function Menu({ mobile }) {
   );
 }
 
-Menu.propTypes = {
-  mobile: PropTypes.bool.isRequired,
-};
-
-const mapSizestoProps = ({ width }) => ({
-  mobile: width < 600,
-});
-
-export default withSizes(mapSizestoProps)(Menu);
+export default Menu;

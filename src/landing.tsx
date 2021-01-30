@@ -1,5 +1,4 @@
 import React from "react";
-import withSizes from "react-sizes";
 import PropTypes from "prop-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,6 +6,7 @@ import {
   faPhone,
   faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
+import { useWindowWidth } from "@react-hook/window-size";
 
 import Logo from "./img/logo.png";
 import ShortLogo from "./img/short-logo.png";
@@ -28,9 +28,11 @@ import {
   DecorationTitle,
   InfoContainer,
   SloganContainer,
-} from "./landing.styled";
+} from "./landing.styles";
 
-function Landing({ mobile }) {
+function Landing() {
+  const mobile = useWindowWidth() < 600;
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
@@ -55,7 +57,7 @@ function Landing({ mobile }) {
                       alt="veggie-club"
                       style={{ objectFit: "contain" }}
                       width={mobile ? 200 : 170}
-                      height={mobile ? 50 : null}
+                      height={mobile ? 50 : "auto"}
                     />
                   </LogoContainer>
                 </ImageBackground>
@@ -202,7 +204,6 @@ function Landing({ mobile }) {
                   width="600"
                   height="450"
                   frameBorder="0"
-                  allowFullScreen=""
                   aria-hidden="false"
                   title="maps"
                   style={
@@ -254,12 +255,4 @@ function Landing({ mobile }) {
   );
 }
 
-const mapSizestoProps = ({ width }) => ({
-  mobile: width < 600,
-});
-
-Landing.propTypes = {
-  mobile: PropTypes.bool.isRequired,
-};
-
-export default withSizes(mapSizestoProps)(Landing);
+export default Landing;

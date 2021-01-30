@@ -49,7 +49,7 @@ export const ImageBackground = styled.div`
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    background-image: ${({ src }) => `url(${src})`};
+    background-image: ${({ src }: { src: string }) => `url(${src})`};
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
@@ -180,5 +180,5 @@ export const DecorationText = styled.div`
 
 export const Padding = styled.div`
   width: 100%;
-  height: ${({ height }) => height}px;
+  height: ${({ height }: { height: number }) => height}px;
 `;

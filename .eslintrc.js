@@ -3,11 +3,16 @@ module.exports = {
     browser: true,
     es6: true,
   },
-  extends: ["airbnb", "plugin:prettier/recommended"],
+  extends: [
+    "plugin:prettier/recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+  ],
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
   },
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
@@ -15,23 +20,15 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module",
   },
-  plugins: ["react", "better-styled-components"],
+  plugins: ["react", "better-styled-components", "@typescript-eslint"],
   rules: {
-    "react/jsx-filename-extension": [
-      1,
-      {
-        extensions: [".js", ".jsx"],
-      },
-    ],
     "prettier/prettier": "warn",
-    "jsx-a11y/label-has-associated-control": [
-      2,
-      {
-        labelAttributes: ["label"],
-        controlComponents: ["InputStyle"],
-        depth: 3,
+  },
+  settings: {
+    "import/resolver": {
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
-    ],
-    "no-unused-vars": "warn",
+    },
   },
 };

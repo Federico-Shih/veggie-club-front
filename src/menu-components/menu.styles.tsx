@@ -25,11 +25,11 @@ export const LoginContainer = styled.div`
   flex-direction: column;
   align-items: center;
   background-color: white;
-  opacity: ${({ active }) => {
+  opacity: ${({ active }: { active: boolean }) => {
     if (active) return 1;
     return 0;
   }};
-  display: ${({ active }) => {
+  display: ${({ active }: { active: boolean }) => {
     if (active) return "flex";
     return "none";
   }};
@@ -85,7 +85,12 @@ const selected = css`
   font-weight: bold;
 `;
 
-export const CategoryButton = styled.button`
+type CategoryProps = {
+  active: boolean;
+  src: string;
+}
+
+export const CategoryButton = styled.button<CategoryProps>`
   width: 45%;
   font-size: 20px;
   border-width: 0px;
@@ -191,7 +196,7 @@ export const FoodThumbnail = styled(ButtonBase)`
 `;
 
 export const FoodImageThumbnail = styled.div`
-  background-image: ${({ src }) => `url(${src})`};
+  background-image: ${({ src }: { src: string }) => `url(${src})`};
   background-size: contain;
   width: 44vw;
   min-width: 50px;
