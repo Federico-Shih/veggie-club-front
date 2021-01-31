@@ -6,11 +6,12 @@ export type Category = {
 
 export type Food = {
   name: string;
-  description: string;
+  description?: string;
   img: string;
   id: string;
 };
 
 export const NullFood = {} as Food;
+export const NullCategory = {} as Category;
 export const NullFoodArray = [] as Food[];
 export const NullCategoryArray = [] as Category[];

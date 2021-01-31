@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ButtonBase, TextField } from "@material-ui/core";
 import styled, { css } from "styled-components";
+import TextFit from 'react-textfit';
 
 // Login form
 export const SignInButton = styled.button`
@@ -15,7 +16,7 @@ export const InputStyle = styled(TextField)`
 `;
 
 export const LoginContainer = styled.div`
-  position: absolute;
+  position: fixed;
   left: 50%;
   transform: translate(-50%, 0);
   top: 100px;
@@ -78,7 +79,6 @@ export const Header = styled.div`
 `;
 
 // Categories
-
 const selected = css`
   border: 2px solid black;
   background-color: #a5a5a5;
@@ -88,7 +88,7 @@ const selected = css`
 type CategoryProps = {
   active: boolean;
   src: string;
-}
+};
 
 export const CategoryButton = styled.button<CategoryProps>`
   width: 45%;
@@ -131,7 +131,6 @@ export const CategoryButton = styled.button<CategoryProps>`
 
 export const CategoriesContainer = styled.div`
   width: 100%;
-  height: 90vh;
   margin-top: 10px;
   display: flex;
   flex-direction: column;
@@ -144,6 +143,7 @@ export const CategoriesContainer = styled.div`
     background-color: ${({ color }) => color};
     width: 250px;
     flex-wrap: nowrap;
+    min-height: 100vh;
   }
 `;
 
@@ -156,6 +156,14 @@ export const CategoriesImageContainer = styled.div`
     flex-direction: row;
     justify-content: center;
     flex-wrap: wrap;
+  }
+`;
+
+export const CategoryText = styled(TextFit)`
+  color: white;
+
+  @media only screen and (min-width: 600px) {
+    color: black;
   }
 `;
 
@@ -179,7 +187,6 @@ export const FoodsSection = styled.div`
     height: 1%;
     margin: 10px;
     margin-top: 15px;
-    min-width: 300px;
     justify-content: flex-start;
   }
 `;
@@ -188,29 +195,35 @@ export const FoodThumbnail = styled(ButtonBase)`
   display: flex;
   flex-direction: column;
   align-self: center;
+  width: 44vw;
+  min-width: 50px;
   -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=315, Color=#000000)"; /*IE 8*/
   -moz-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*FF 3.5+*/
   -webkit-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*Saf3-4, Chrome, iOS 4.0.2-4.2, Android 2.3+*/
   box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
   filter: progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=135, Color=#000000); /*IE 5.5-7*/
+
+  @media only screen and (min-width: 600px) {
+    width: 180px;
+  }
 `;
 
 export const FoodImageThumbnail = styled.div`
   background-image: ${({ src }: { src: string }) => `url(${src})`};
   background-size: contain;
-  width: 44vw;
-  min-width: 50px;
   height: 120px;
-  @media only screen and (min-width: 600px) {
-    width: 180px;
-    height: 150px;
-  }
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 `;
 
-export const FoodNameThumbnail = styled.div`
-  font-size: 24px;
+export const FoodNameThumbnail = styled(TextFit)`
   font-weight: 500;
   margin-top: 5px;
+  width: 100%;
+  height: 30px;
+  padding: 4px;
 `;
 
 export const FoodPadding = styled.div`
@@ -230,4 +243,76 @@ export const ImageShadow = styled.div`
   width: 100vw;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
+`;
+
+export const FoodContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  top: 50%;
+  transform: translateY(-50%);
+  @media only screen and (min-width: 600px) {
+    flex-direction: row-reverse;
+    height: 60vh;
+    min-height: 150px;
+  }
+`;
+
+export const FoodImage = styled.img`
+  width: 80vw;
+  object-fit: cover;
+  height: 100%;
+
+  @media only screen and (min-width: 600px) {
+    width: 70vh;
+    min-width: 200px;
+  }
+`;
+
+export const FoodTextContainer = styled.div`
+  height: 100%;
+  overflow: hidden;
+  width: 80vw;
+
+  @media only screen and (min-width: 600px) {
+    width: 18vw;
+    border: 0px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    padding: 20px;
+    min-width: 200px;
+    background-color: white;
+  }
+`;
+
+export const FoodName = styled(TextFit)`
+  font-weight: 700;
+  height: 30px;
+
+  @media only screen and (max-width: 600px) {
+    color: white;
+    margin-top: 20px;
+  }
+`;
+
+export const FoodDescription = styled.div`
+  margin-top: 15px;
+  font-size: 18px;
+  overflow-y: scroll;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  @media only screen and (max-width: 600px) {
+    color: white;
+  }
+
+  @media only screen and (min-width: 600px) and (max-width: 1024px) {
+    font-size: 16px;
+  }
 `;
