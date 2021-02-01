@@ -27,7 +27,7 @@ export const getCategories = (): Promise<Category[]> => {
   });
 };
 
-export const getFoods = (category: string, day: number): Promise<Food[]> => {
+export const getFoods = (categoryId: string, day: number): Promise<Food[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([

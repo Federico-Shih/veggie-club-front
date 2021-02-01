@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ButtonBase, TextField } from "@material-ui/core";
+import { Button, ButtonBase, TextField } from "@material-ui/core";
 import styled, { css } from "styled-components";
-import TextFit from 'react-textfit';
+import TextFit from "react-textfit";
 
 // Login form
 export const SignInButton = styled.button`
@@ -235,15 +235,6 @@ export const FoodPadding = styled.div`
 `;
 
 // Image shower
-export const ImageShadow = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-`;
 
 export const FoodContainer = styled.div`
   position: relative;
@@ -251,8 +242,6 @@ export const FoodContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  top: 50%;
-  transform: translateY(-50%);
   @media only screen and (min-width: 600px) {
     flex-direction: row-reverse;
     height: 60vh;
@@ -314,5 +303,29 @@ export const FoodDescription = styled.div`
 
   @media only screen and (min-width: 600px) and (max-width: 1024px) {
     font-size: 16px;
+  }
+`;
+
+// Admin styles
+
+export const AddCategoryButton = styled(Button)`
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  width: 45%;
+  border: 2px solid grey;
+  height: 25vh;
+  max-height: 120px;
+  font-size: 50px;
+  margin-top: 10px;
+
+  @media only screen and (min-width: 600px) {
+    background-color: white;
+    font-size: 20px;
+    border-radius: 20px;
+    height: auto;
+    color: black;
+    width: 60%;
+  }
+  &:hover {
+    background-color: #eaeaea;
   }
 `;

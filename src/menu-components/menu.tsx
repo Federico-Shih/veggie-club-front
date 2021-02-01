@@ -5,19 +5,30 @@ import React, {
   ReactElement,
   useContext,
   MouseEvent,
+  createContext,
 } from "react";
 import { Link, Switch, Route, useHistory, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon as FAIcon } from "@fortawesome/react-fontawesome";
 import { useWindowWidth } from "@react-hook/window-size";
 import {
   faCog,
-  faThList,
   faWindowClose,
   faArrowLeft,
   faCalendar,
+  faBars,
+  faSignOutAlt,
+  faThList,
 } from "@fortawesome/free-solid-svg-icons";
 import { SyncLoader } from "react-spinners";
-import { Button } from "@material-ui/core";
+import {
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Backdrop,
+} from "@material-ui/core";
 import { Action, Fab } from "react-tiny-fab";
 
 import Smologo from "../img/short-logo.png";
@@ -43,26 +54,110 @@ import {
   FoodName,
   FoodDescription,
   CategoryText,
+  AddCategoryButton,
 } from "./menu.styles";
-import { FocusShadow, LoaderWrapper } from "../components/utilities";
+import { LoaderWrapper } from "../components/utilities";
+import { useCategoryEditor } from "./hooks";
 import {
   NullFood,
   NullCategoryArray,
   NullFoodArray,
   NullCategory,
+  Category,
 } from "./types";
+import { CategoryEditor } from "./components";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-// Both versions of the menu
+const DrawerContext = createContext({
+  open: false,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  toggleDrawer: (_: boolean): void => {},
+});
+
+type DaySelectorProps = {
+  selectedDay: number;
+  setSelectedDay: (day: number) => void;
+};
+
+const DaySelector = ({ selectedDay, setSelectedDay }: DaySelectorProps) => {
+  const mobile = useWindowWidth() < 600;
+
+  return (
+    <Fab
+      icon={<FAIcon size={mobile ? "1x" : "2x"} icon={faCalendar}></FAIcon>}
+      event={mobile ? "click" : "hover"}
+      mainButtonStyles={mobile ? {} : { width: "80px", height: "80px" }}
+      alwaysShowTitle
+      style={{ position: "fixed", right: 0, bottom: 0 }}
+    >
+      <Action
+        style={selectedDay === 1 ? { color: "black" } : {}}
+        onClick={() => {
+          setSelectedDay(1);
+        }}
+        text="Lunes"
+      >
+        Lu
+      </Action>
+      <Action
+        text="Mártes"
+        onClick={() => {
+          setSelectedDay(2);
+        }}
+        style={selectedDay === 2 ? { color: "black" } : {}}
+      >
+        Ma
+      </Action>
+      <Action
+        text="Miércoles"
+        onClick={() => {
+          setSelectedDay(3);
+        }}
+        style={selectedDay === 3 ? { color: "black" } : {}}
+      >
+        Mi
+      </Action>
+      <Action
+        text="Jueves"
+        onClick={() => {
+          setSelectedDay(4);
+        }}
+        style={selectedDay === 4 ? { color: "black" } : {}}
+      >
+        Ju
+      </Action>
+      <Action
+        text="Viernes"
+        onClick={() => {
+          setSelectedDay(5);
+        }}
+        style={selectedDay === 5 ? { color: "black" } : {}}
+      >
+        Vi
+      </Action>
+      <Action
+        text="Sábado"
+        onClick={() => {
+          setSelectedDay(6);
+        }}
+        style={selectedDay === 6 ? { color: "black" } : {}}
+      >
+        Sa
+      </Action>
+    </Fab>
+  );
+};
+
+// User menu component
 function NormalMenu() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
 
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
-  const [selectedCategory, setCategory] = useState("");
+  const [selectedCategory, setCategory] = useState(NullCategory);
   const [showedFood, setShowedFood] = useState(NullFood);
   const [categories, setCategories] = useState(NullCategoryArray);
   const [foods, setFoods] = useState(NullFoodArray);
@@ -70,17 +165,13 @@ function NormalMenu() {
   const history = useHistory();
   const { pathname: path } = useLocation();
 
-  const categoryClickHandler = async (category: string) => {
+  const categoryClickHandler = async (category: Category) => {
     setLoadingFoods(true);
-    history.push(`${path}?categoria=${category}`);
+    history.push(`${path}?categoria=${category.text}`);
     setCategory(category);
-    const foodCall = await getFoods(category, selectedDay);
+    const foodCall = await getFoods(category.id, selectedDay);
     setFoods(foodCall);
     setLoadingFoods(false);
-  };
-
-  const stopPropagation = (e: MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
   };
 
   // Initial Loading
@@ -91,9 +182,8 @@ function NormalMenu() {
       if (categoryList.length !== 0) {
         setCategories(categoryList);
         if (categoryList.length !== 0) {
-          const category = categoryList[0].text;
           if (!mobile) {
-            categoryClickHandler(category);
+            categoryClickHandler(categoryList[0]);
           }
         }
       }
@@ -101,13 +191,16 @@ function NormalMenu() {
     };
     asyncEffect();
   }, []);
+  const stopPropagation = (e: MouseEvent<HTMLImageElement>) => {
+    e.stopPropagation();
+  };
 
   const categoryQuery = useQuery().get("categoria");
 
   useEffect(() => {
     setLoadingFoods(true);
     const getFoodsCall = async () => {
-      const foodCall = await getFoods(selectedCategory, selectedDay);
+      const foodCall = await getFoods(selectedCategory.id, selectedDay);
       setFoods(foodCall);
       setLoadingFoods(false);
     };
@@ -138,17 +231,18 @@ function NormalMenu() {
           >
             <CategoriesImageContainer>
               {categories.length !== 0 ? (
-                categories.map(({ text: category, img }) => {
+                categories.map((categoryTemp) => {
+                  const { text, img, id } = categoryTemp;
                   return (
                     <CategoryButton
                       onClick={() => {
-                        categoryClickHandler(category);
+                        categoryClickHandler(categoryTemp);
                       }}
-                      key={category}
+                      key={id}
                       src={img}
-                      active={category === categoryQuery}
+                      active={id === selectedCategory.id}
                     >
-                      <CategoryText>{category}</CategoryText>
+                      <CategoryText>{text}</CategoryText>
                     </CategoryButton>
                   );
                 })
@@ -208,7 +302,13 @@ function NormalMenu() {
           </LoaderWrapper>
         </FoodsSection>
       ) : null}
-      <FocusShadow active={foodSelected} setActive={setShowedFood}>
+      <Backdrop
+        open={foodSelected}
+        onClick={() => {
+          setShowedFood(NullFood);
+        }}
+        style={{ zIndex: 1000 }}
+      >
         <FoodContainer>
           <FoodImage src={showedFood.img} onClick={stopPropagation} />
           <FoodTextContainer onClick={stopPropagation}>
@@ -217,88 +317,176 @@ function NormalMenu() {
             <FoodDescription>{showedFood.description}</FoodDescription>
           </FoodTextContainer>
         </FoodContainer>
-      </FocusShadow>
-      <Fab
-        icon={
-          <FontAwesomeIcon
-            size={mobile ? "1x" : "2x"}
-            icon={faCalendar}
-          ></FontAwesomeIcon>
-        }
-        event={mobile ? "click" : "hover"}
-        mainButtonStyles={mobile ? {} : { width: "80px", height: "80px" }}
-        alwaysShowTitle
-        style={{ position: "fixed", right: 0, bottom: 0 }}
-      >
-        <Action
-          style={selectedDay === 1 ? { color: "black" } : {}}
-          onClick={() => {
-            setSelectedDay(1);
-          }}
-          text="Lunes"
-        >
-          Lu
-        </Action>
-        <Action
-          text="Mártes"
-          onClick={() => {
-            setSelectedDay(2);
-          }}
-          style={selectedDay === 2 ? { color: "black" } : {}}
-        >
-          Ma
-        </Action>
-        <Action
-          text="Miércoles"
-          onClick={() => {
-            setSelectedDay(3);
-          }}
-          style={selectedDay === 3 ? { color: "black" } : {}}
-        >
-          Mi
-        </Action>
-        <Action
-          text="Jueves"
-          onClick={() => {
-            setSelectedDay(4);
-          }}
-          style={selectedDay === 4 ? { color: "black" } : {}}
-        >
-          Ju
-        </Action>
-        <Action
-          text="Viernes"
-          onClick={() => {
-            setSelectedDay(5);
-          }}
-          style={selectedDay === 5 ? { color: "black" } : {}}
-        >
-          Vi
-        </Action>
-        <Action
-          text="Sábado"
-          onClick={() => {
-            setSelectedDay(6);
-          }}
-          style={selectedDay === 6 ? { color: "black" } : {}}
-        >
-          Sa
-        </Action>
-      </Fab>
+      </Backdrop>
+      <DaySelector selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
     </div>
   );
 }
 
+// Admin menu component;
 function AdminMenu() {
-  return <div>admin menu</div>;
+  const { open, toggleDrawer } = useContext(DrawerContext);
+  const history = useHistory();
+  const mobile = useWindowWidth() < 600;
+  const { pathname: path } = useLocation();
+
+  const [loadingCategory, setLoadingCategory] = useState(false);
+  const [loadingFoods, setLoadingFoods] = useState(false);
+
+  const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  const [selectedCategory, setCategory] = useState(NullCategory);
+  // const [showedFood, setShowedFood] = useState(NullFood);
+  const [categories, setCategories] = useState(NullCategoryArray);
+  const [foods, setFoods] = useState(NullFoodArray);
+  const [
+    { show: editorShown, category: editedCategory },
+    setCategoryEditor,
+  ] = useCategoryEditor({
+    show: false,
+  });
+
+  const categoryClickHandler = async (category: Category) => {
+    setLoadingFoods(true);
+    history.push(`${path}?categoria=${category.text}`);
+    setCategory(category);
+    const foodCall = await getFoods(category.id, selectedDay);
+    setFoods(foodCall);
+    setLoadingFoods(false);
+  };
+
+  // Initial Loading
+  useEffect(() => {
+    setLoadingCategory(true);
+    const asyncEffect = async () => {
+      const categoryList = await getCategories();
+      if (categoryList.length !== 0) {
+        setCategories(categoryList);
+        if (categoryList.length !== 0) {
+          if (!mobile) {
+            categoryClickHandler(categoryList[0]);
+          }
+        }
+      }
+      setLoadingCategory(false);
+    };
+    asyncEffect();
+  }, []);
+
+  const categoryQuery = useQuery().get("categoria");
+  const theme = useContext(ThemeContext);
+
+  return (
+    <>
+      <Switch>
+        <Route exact path="/menu/settings">
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            {!mobile || (mobile && !categoryQuery) ? (
+              <CategoriesContainer color={theme.primary}>
+                <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
+                {mobile ? (
+                  <hr
+                    style={{
+                      color: "black",
+                      width: "80%",
+                    }}
+                  />
+                ) : null}
+                <LoaderWrapper
+                  Loader={<SyncLoader size={10} />}
+                  loading={loadingCategory}
+                >
+                  <CategoriesImageContainer>
+                    {categories.length !== 0 ? (
+                      <>
+                        {categories.map((categoryTemp) => {
+                          const { text, img, id } = categoryTemp;
+                          return (
+                            <CategoryButton
+                              onClick={() => {
+                                categoryClickHandler(categoryTemp);
+                              }}
+                              key={id}
+                              src={img}
+                              active={id === selectedCategory.id}
+                            >
+                              <CategoryText>{text}</CategoryText>
+                            </CategoryButton>
+                          );
+                        })}
+                        <AddCategoryButton
+                          onClick={() => {
+                            setCategoryEditor({ show: true });
+                          }}
+                        >
+                          +
+                        </AddCategoryButton>
+                      </>
+                    ) : (
+                      <div
+                        style={
+                          mobile
+                            ? { textAlign: "center" }
+                            : {
+                                fontSize: "16px",
+                                textAlign: "center",
+                                marginTop: "20px",
+                              }
+                        }
+                      >
+                        No hay categorías todavía
+                      </div>
+                    )}
+                  </CategoriesImageContainer>
+                </LoaderWrapper>
+              </CategoriesContainer>
+            ) : null}
+          </div>
+        </Route>
+      </Switch>
+      <Drawer
+        open={open}
+        onClose={() => {
+          toggleDrawer(false);
+        }}
+      >
+        <Link to="/menu/settings">
+          <List style={{ width: "200px" }}>
+            <ListItem button>
+              <ListItemIcon>
+                <FAIcon size="lg" icon={faThList} />
+              </ListItemIcon>
+              <ListItemText primary={"Menu"} />
+            </ListItem>
+          </List>
+        </Link>
+      </Drawer>
+      <Backdrop
+        open={editorShown}
+        onClick={() => {
+          setCategoryEditor({ show: false });
+        }}
+        style={{ zIndex: 1000 }}
+      >
+        <CategoryEditor category={editedCategory as Category} />
+      </Backdrop>
+    </>
+  );
 }
 
 // Menu with the router switch and header
 function Menu(): ReactElement {
+  // Switches to admin tab
   const [admin, setAdmin] = useState(false);
+
+  // Activates log in popup
   const [loggingIn, setLog] = useState(false);
+
+  // Login info
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
+
+  // Activates drawer
+  const [activeDrawer, setActiveDrawer] = useState(false);
 
   const history = useHistory();
   const { pathname: path } = useLocation();
@@ -319,7 +507,7 @@ function Menu(): ReactElement {
 
   const switchAdmin = () => {
     if (admin) {
-      history.goBack();
+      history.push("/menu");
       setAdmin(false);
     } else {
       setLogin(true);
@@ -356,42 +544,74 @@ function Menu(): ReactElement {
   const searchQuery = useQuery().get("categoria");
   const theme = useContext(ThemeContext);
 
+  const MainIcon = (): ReactElement => {
+    if (searchQuery && mobile) {
+      return (
+        <FAIcon
+          icon={faArrowLeft}
+          size="2x"
+          style={{ margin: "8px" }}
+          color="black"
+          onClick={() => {
+            history.goBack();
+          }}
+        />
+      );
+    }
+
+    if (path.split("/").includes("settings")) {
+      return (
+        <FAIcon
+          icon={faBars}
+          size="2x"
+          style={{ margin: "8px" }}
+          color="black"
+          onClick={() => {
+            setActiveDrawer(!activeDrawer);
+          }}
+        ></FAIcon>
+      );
+    }
+
+    return (
+      <Link to="/">
+        <img
+          src={mobile ? Smologo : Logo}
+          alt="logo"
+          height={mobile ? 40 : 35}
+          style={{ marginLeft: "10px" }}
+        />
+      </Link>
+    );
+  };
+
   return (
     <>
       <Header color={theme.secondary}>
-        <Link to={searchQuery && mobile ? "/menu" : "/"}>
-          {searchQuery && mobile ? (
-            <FontAwesomeIcon
-              icon={faArrowLeft}
-              size="2x"
-              style={{ margin: "8px" }}
-              color="black"
-            />
-          ) : (
-            <img
-              src={mobile ? Smologo : Logo}
-              alt="logo"
-              height={mobile ? 40 : 35}
-              style={{ marginLeft: "10px" }}
-            />
-          )}
-        </Link>
+        <MainIcon />
         <div
           style={{
             position: "absolute",
             left: "50%",
             transform: "translate(-50%, 0)",
-            fontSize: "30px",
+            fontSize: mobile ? "20px" : "30px",
             fontWeight: 500,
           }}
         >
           {admin ? "ADMINISTRADOR" : "MENU"}
         </div>
-        <SwitchButton icon={!admin ? faCog : faThList} onClick={switchAdmin} />
+        <SwitchButton
+          icon={!admin ? faCog : faSignOutAlt}
+          onClick={switchAdmin}
+        />
       </Header>
       <Switch>
         <Route exact path="/menu/settings">
-          <AdminMenu />
+          <DrawerContext.Provider
+            value={{ toggleDrawer: setActiveDrawer, open: activeDrawer }}
+          >
+            <AdminMenu />
+          </DrawerContext.Provider>
         </Route>
         <Route exact path="/menu">
           <NormalMenu />
@@ -423,7 +643,7 @@ function Menu(): ReactElement {
         <Button variant="contained" onClick={validate}>
           Loguearse
         </Button>
-        <FontAwesomeIcon
+        <FAIcon
           icon={faWindowClose}
           style={{ position: "absolute", right: 0, margin: "15px" }}
           onClick={() => {
