@@ -18,6 +18,7 @@ import {
   faBars,
   faSignOutAlt,
   faThList,
+  faEdit,
 } from "@fortawesome/free-solid-svg-icons";
 import { SyncLoader } from "react-spinners";
 import {
@@ -34,7 +35,15 @@ import { Action, Fab } from "react-tiny-fab";
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
 import { ThemeContext } from "../theme";
-import { login, getCategories, getFoods } from "./api";
+import {
+  login,
+  getCategories,
+  getFoodsByDayAndCategory,
+  createCategory,
+  modifyCategory,
+  createFood,
+  modifyFood,
+} from "./api";
 import {
   Header,
   InputStyle,
@@ -57,7 +66,7 @@ import {
   AddCategoryButton,
 } from "./menu.styles";
 import { LoaderWrapper } from "../components/utilities";
-import { useCategoryEditor } from "./hooks";
+import { useCategoryEditor, useFoodEditor } from "./hooks";
 import {
   NullFood,
   NullCategoryArray,
@@ -65,7 +74,9 @@ import {
   NullCategory,
   Category,
 } from "./types";
-import { CategoryEditor } from "./components";
+import { CategoryEditor, FoodEditor } from "./menu.components";
+import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
+import { Food } from "./types";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -76,6 +87,10 @@ const DrawerContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   toggleDrawer: (_: boolean): void => {},
 });
+
+const stopPropagation = (e: MouseEvent<HTMLImageElement>) => {
+  e.stopPropagation();
+};
 
 type DaySelectorProps = {
   selectedDay: number;
@@ -169,7 +184,7 @@ function NormalMenu() {
     setLoadingFoods(true);
     history.push(`${path}?categoria=${category.text}`);
     setCategory(category);
-    const foodCall = await getFoods(category.id, selectedDay);
+    const foodCall = await getFoodsByDayAndCategory(category.id, selectedDay);
     setFoods(foodCall);
     setLoadingFoods(false);
   };
@@ -191,16 +206,16 @@ function NormalMenu() {
     };
     asyncEffect();
   }, []);
-  const stopPropagation = (e: MouseEvent<HTMLImageElement>) => {
-    e.stopPropagation();
-  };
 
   const categoryQuery = useQuery().get("categoria");
 
   useEffect(() => {
     setLoadingFoods(true);
     const getFoodsCall = async () => {
-      const foodCall = await getFoods(selectedCategory.id, selectedDay);
+      const foodCall = await getFoodsByDayAndCategory(
+        selectedCategory.id,
+        selectedDay
+      );
       setFoods(foodCall);
       setLoadingFoods(false);
     };
@@ -209,7 +224,7 @@ function NormalMenu() {
   }, [selectedDay]);
 
   const mobile = useWindowWidth() < 600;
-  const foodSelected = Object.keys(showedFood).length !== 0;
+  const foodSelected = showedFood.img !== "";
   const theme = useContext(ThemeContext);
 
   return (
@@ -273,13 +288,14 @@ function NormalMenu() {
           >
             <>
               {foods.length !== 0 ? (
-                foods.map(({ name, description, img, id }) => (
+                foods.map(({ name, description, img, id, days }) => (
                   <FoodPadding key={id}>
                     <FoodThumbnail
                       onClick={() => {
                         setShowedFood({
                           name,
-                          description: description ? description : "",
+                          description,
+                          days,
                           img,
                           id,
                         });
@@ -333,23 +349,30 @@ function AdminMenu() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
 
-  const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [selectedCategory, setCategory] = useState(NullCategory);
-  // const [showedFood, setShowedFood] = useState(NullFood);
   const [categories, setCategories] = useState(NullCategoryArray);
   const [foods, setFoods] = useState(NullFoodArray);
+
+  // Category and Food's editor
   const [
-    { show: editorShown, category: editedCategory },
+    { show: categoryEditorShown, category: editedCategory },
     setCategoryEditor,
   ] = useCategoryEditor({
     show: false,
   });
 
+  const [
+    { show: foodEditorShown, food: editedFood },
+    setShowedFood,
+  ] = useFoodEditor({ show: false });
+
   const categoryClickHandler = async (category: Category) => {
     setLoadingFoods(true);
+
+    // Used for mobile back functionality
     history.push(`${path}?categoria=${category.text}`);
     setCategory(category);
-    const foodCall = await getFoods(category.id, selectedDay);
+    const foodCall = await getFoodsByDayAndCategory(category.id);
     setFoods(foodCall);
     setLoadingFoods(false);
   };
@@ -371,6 +394,70 @@ function AdminMenu() {
     };
     asyncEffect();
   }, []);
+
+  // Function passed to category editor component
+  const onCategorySave = async (savedCategory: Category) => {
+    const { img, text, id } = savedCategory;
+    if (id === "-1") {
+      const newCategory = await createCategory(text, img);
+      if (newCategory) {
+        const newCategoryList = [...categories];
+        newCategoryList.push(newCategory);
+        setCategories(newCategoryList);
+      } else {
+        throw new CategoryNotSavedError();
+      }
+      return Promise.resolve(newCategory);
+    } else {
+      const modifiedCategory = await modifyCategory(savedCategory);
+      if (modifiedCategory) {
+        const newCategoryList = [...categories];
+        for (let i = 0; i < newCategoryList.length; i += 1) {
+          if (newCategoryList[i].id === modifiedCategory.id) {
+            newCategoryList[i] = modifiedCategory;
+            break;
+          }
+        }
+        setCategories(newCategoryList);
+      } else {
+        throw new CategoryNotSavedError();
+      }
+      return Promise.resolve(modifiedCategory);
+    }
+  };
+
+  const onFoodSave = async (savedFood: Food) => {
+    const { img, name, description, id, days } = savedFood;
+    if (id === "-1") {
+      const newFood = await createFood(
+        { img, name, description, days },
+        selectedCategory.id
+      );
+      if (newFood) {
+        const newFoodList = [...foods];
+        newFoodList.push(newFood);
+        setFoods(newFoodList);
+      } else {
+        throw new FoodNotSavedError();
+      }
+      return Promise.resolve(newFood);
+    } else {
+      const modifiedFood = await modifyFood(savedFood);
+      if (modifiedFood) {
+        const newFoodList = [...foods];
+        for (let i = 0; i < newFoodList.length; i += 1) {
+          if (newFoodList[i].id === modifiedFood.id) {
+            newFoodList[i] = modifiedFood;
+            break;
+          }
+        }
+        setFoods(newFoodList);
+      } else {
+        throw new FoodNotSavedError();
+      }
+      return Promise.resolve(savedFood);
+    }
+  };
 
   const categoryQuery = useQuery().get("categoria");
   const theme = useContext(ThemeContext);
@@ -408,8 +495,28 @@ function AdminMenu() {
                               key={id}
                               src={img}
                               active={id === selectedCategory.id}
+                              style={{ position: "relative" }}
                             >
                               <CategoryText>{text}</CategoryText>
+                              <FAIcon
+                                size="lg"
+                                icon={faEdit}
+                                onClick={(e) => {
+                                  // To avoid clicking the category button
+                                  e.stopPropagation();
+                                  setCategoryEditor({
+                                    show: true,
+                                    category: categoryTemp,
+                                  });
+                                }}
+                                style={{
+                                  position: "absolute",
+                                  right: 0,
+                                  top: 0,
+                                  margin: 10,
+                                }}
+                                color={mobile ? "white" : "black"}
+                              />
                             </CategoryButton>
                           );
                         })}
@@ -440,6 +547,82 @@ function AdminMenu() {
                 </LoaderWrapper>
               </CategoriesContainer>
             ) : null}
+            {!mobile || (mobile && categoryQuery) ? (
+              <FoodsSection>
+                <LoaderWrapper
+                  Loader={<SyncLoader size={10} />}
+                  loading={loadingFoods}
+                >
+                  <>
+                    {foods.length !== 0 ? (
+                      foods.map(({ name, description, img, id, days }) => (
+                        <FoodPadding key={id}>
+                          <FoodThumbnail
+                            onClick={() => {
+                              setShowedFood({
+                                show: true,
+                                food: {
+                                  name,
+                                  description: description ? description : "",
+                                  img,
+                                  id,
+                                  days,
+                                },
+                              });
+                            }}
+                          >
+                            <FoodImageThumbnail src={img} />
+                            <FoodNameThumbnail
+                              mode="single"
+                              forceSingleModeWidth={false}
+                            >
+                              {name}
+                            </FoodNameThumbnail>
+                          </FoodThumbnail>
+                        </FoodPadding>
+                      ))
+                    ) : (
+                      <></>
+                    )}
+                    <FoodPadding>
+                      <FoodThumbnail
+                        style={{
+                          height: 150,
+                          fontSize: 80,
+                          border: "4px solid black",
+                        }}
+                        onClick={() => {
+                          setShowedFood({ show: true });
+                        }}
+                      >
+                        +
+                      </FoodThumbnail>
+                    </FoodPadding>
+                  </>
+                </LoaderWrapper>
+              </FoodsSection>
+            ) : null}
+            <Backdrop
+              open={categoryEditorShown}
+              onClick={() => {
+                setCategoryEditor({ show: false });
+              }}
+              style={{ zIndex: 1000 }}
+            >
+              <CategoryEditor
+                onSave={onCategorySave}
+                category={editedCategory as Category}
+              />
+            </Backdrop>
+            <Backdrop
+              open={foodEditorShown}
+              onClick={() => {
+                setShowedFood({ show: false });
+              }}
+              style={{ zIndex: 1000 }}
+            >
+              <FoodEditor food={editedFood as Food} onSave={onFoodSave} />
+            </Backdrop>
           </div>
         </Route>
       </Switch>
@@ -460,15 +643,6 @@ function AdminMenu() {
           </List>
         </Link>
       </Drawer>
-      <Backdrop
-        open={editorShown}
-        onClick={() => {
-          setCategoryEditor({ show: false });
-        }}
-        style={{ zIndex: 1000 }}
-      >
-        <CategoryEditor category={editedCategory as Category} />
-      </Backdrop>
     </>
   );
 }
@@ -477,17 +651,13 @@ function AdminMenu() {
 function Menu(): ReactElement {
   // Switches to admin tab
   const [admin, setAdmin] = useState(false);
-
   // Activates log in popup
   const [loggingIn, setLog] = useState(false);
-
   // Login info
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
-
   // Activates drawer
   const [activeDrawer, setActiveDrawer] = useState(false);
-
   const history = useHistory();
   const { pathname: path } = useLocation();
 
@@ -617,40 +787,61 @@ function Menu(): ReactElement {
           <NormalMenu />
         </Route>
       </Switch>
-      <LoginContainer active={loggingIn}>
-        <img src={Logo} alt="logo" height={40} style={{ marginTop: "10px" }} />
-        <InputStyle
-          name="username"
-          onChange={handleChange(setUser)}
-          value={username}
-          variant="outlined"
-          label="Nombre de usuario"
-          size="small"
-          margin="normal"
-        />
-
-        <InputStyle
-          type="password"
-          name="password"
-          onChange={handleChange(setPass)}
-          variant="outlined"
-          label="Contraseña"
-          value={password}
-          size="small"
-          margin="normal"
-        />
-
-        <Button variant="contained" onClick={validate}>
-          Loguearse
-        </Button>
-        <FAIcon
-          icon={faWindowClose}
-          style={{ position: "absolute", right: 0, margin: "15px" }}
-          onClick={() => {
-            setLogin(false);
+      <Backdrop
+        open={loggingIn}
+        onClick={() => {
+          setLogin(false);
+        }}
+        style={{ zIndex: 1001 }}
+      >
+        <LoginContainer
+          onClick={(e) => {
+            e.stopPropagation();
           }}
-        />
-      </LoginContainer>
+        >
+          <img
+            src={Logo}
+            alt="logo"
+            height={40}
+            style={{ marginTop: "10px" }}
+          />
+          <InputStyle
+            name="username"
+            onChange={handleChange(setUser)}
+            value={username}
+            variant="outlined"
+            label="Nombre de usuario"
+            size="small"
+            margin="normal"
+          />
+
+          <InputStyle
+            type="password"
+            name="password"
+            onChange={handleChange(setPass)}
+            variant="outlined"
+            label="Contraseña"
+            value={password}
+            size="small"
+            margin="normal"
+          />
+
+          <Button variant="contained" onClick={validate}>
+            Loguearse
+          </Button>
+          <FAIcon
+            icon={faWindowClose}
+            style={{
+              position: "absolute",
+              right: 0,
+              margin: "15px",
+            }}
+            onClick={() => {
+              setLogin(false);
+            }}
+          />
+        </LoginContainer>
+      </Backdrop>
     </>
   );
 }

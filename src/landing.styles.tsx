@@ -158,7 +158,7 @@ export const DecorationTitle = styled.div`
 `;
 
 export const DecorationDesc = styled.div`
-  font-size: 10px;
+  font-size: 16px;
   text-align: center;
   padding-top: 10px;
   @media only screen and (min-width: 600px) {

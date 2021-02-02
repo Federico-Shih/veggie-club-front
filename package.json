@@ -18,6 +18,7 @@
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-image-crop": "^8.6.6",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.1",
     "react-sizes": "^2.0.0",
@@ -48,6 +49,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react-image-crop": "^8.1.2",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-sizes": "^2.0.0",
     "@types/styled-components": "^5.1.7",

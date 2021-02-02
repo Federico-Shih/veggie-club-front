@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Category, NullCategory } from "./types";
+import { Category, NullCategory, Food, NullFood } from "./types";
 
 interface EditCategoryDto {
   show: boolean;
@@ -28,4 +28,27 @@ export const useCategoryEditor = ({
     { show: isEditorShown, category: editedCategory },
     setCategoryEditorState,
   ];
+};
+
+interface EditFoodDto {
+  show: boolean;
+  food?: Food;
+}
+
+export const useFoodEditor = ({
+  show = false,
+  food = NullFood,
+}: EditFoodDto): [EditFoodDto, (temp: EditFoodDto) => void] => {
+  const [isEditorShown, setEditorShown] = useState(show);
+  const [editedFood, setFood] = useState(food);
+
+  const setFoodEditorState = ({ show, food = NullFood }: EditFoodDto) => {
+    setEditorShown(show);
+    if (!show) {
+      setFood(NullFood);
+    } else {
+      setFood(food);
+    }
+  };
+  return [{ show: isEditorShown, food: editedFood }, setFoodEditorState];
 };

@@ -16,24 +16,14 @@ export const InputStyle = styled(TextField)`
 `;
 
 export const LoginContainer = styled.div`
-  position: fixed;
-  left: 50%;
-  transform: translate(-50%, 0);
-  top: 100px;
   width: 80vw;
   height: 250px;
   border-radius: 5%;
+  display: flex;
+  position: relative;
   flex-direction: column;
   align-items: center;
   background-color: white;
-  opacity: ${({ active }: { active: boolean }) => {
-    if (active) return 1;
-    return 0;
-  }};
-  display: ${({ active }: { active: boolean }) => {
-    if (active) return "flex";
-    return "none";
-  }};
   @media only screen and (min-width: 600px) {
     width: 20vw;
     min-width: 300px;
@@ -92,7 +82,6 @@ type CategoryProps = {
 
 export const CategoryButton = styled.button<CategoryProps>`
   width: 45%;
-  font-size: 20px;
   border-width: 0px;
   height: 25vh;
   max-height: 120px;
@@ -108,13 +97,17 @@ export const CategoryButton = styled.button<CategoryProps>`
 
   @media only screen and (min-width: 600px) {
     border-radius: 20px;
-    height: auto;
+    height: 40px;
     background-color: white;
     padding-top: 5px;
     padding-bottom: 5px;
     margin-top: 12px;
     width: 80%;
     background-image: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
   @media only screen and (max-width: 600px) {
@@ -161,9 +154,11 @@ export const CategoriesImageContainer = styled.div`
 
 export const CategoryText = styled(TextFit)`
   color: white;
-
+  height: 30px;
+  font-size: 20px;
   @media only screen and (min-width: 600px) {
     color: black;
+    height: 100%;
   }
 `;
 
@@ -173,14 +168,14 @@ export const FoodsSection = styled.div`
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+  width: 100%;
   justify-content: space-evenly;
-
   @media only screen and (max-width: 600px) {
-    margin: auto;
     margin-top: 8px;
   }
 
   @media only screen and (min-width: 600px) {
+    width: calc(100vw - 250px);
     min-height: 150px;
     min-width: 360px;
     overflow: hidden;
@@ -309,13 +304,15 @@ export const FoodDescription = styled.div`
 // Admin styles
 
 export const AddCategoryButton = styled(Button)`
-  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
   width: 45%;
-  border: 2px solid grey;
+  border-width: 0px;
   height: 25vh;
   max-height: 120px;
+  outline: none;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   font-size: 50px;
-  margin-top: 10px;
+
+  border: 2px solid grey;
 
   @media only screen and (min-width: 600px) {
     background-color: white;
@@ -323,9 +320,13 @@ export const AddCategoryButton = styled(Button)`
     border-radius: 20px;
     height: auto;
     color: black;
-    width: 60%;
+    width: auto;
+    margin-top: 10px;
   }
   &:hover {
     background-color: #eaeaea;
+  }
+  @media only screen and (max-width: 600px) {
+    margin: 5px;
   }
 `;
