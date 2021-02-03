@@ -547,7 +547,7 @@ type DaysChooserProps = {
 };
 
 const DayButton = styled(IconButton)`
-  background-color: ${({ active }: { active: boolean }) =>
+  background-color: ${({ selected: active }: { selected: boolean }) =>
     active ? "#eaeaea" : "none"};
   width: 30px;
   height: 30px;
@@ -601,25 +601,25 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
 
   return (
     <div style={{ display: "flex", width: "100%" }}>
-      <DayButton active={days[0]} onClick={() => onClickHandler(0)}>
+      <DayButton selected={days[0]} onClick={() => onClickHandler(0)}>
         Do
       </DayButton>
-      <DayButton active={days[1]} onClick={() => onClickHandler(1)}>
+      <DayButton selected={days[1]} onClick={() => onClickHandler(1)}>
         Lu
       </DayButton>
-      <DayButton active={days[2]} onClick={() => onClickHandler(2)}>
+      <DayButton selected={days[2]} onClick={() => onClickHandler(2)}>
         Ma
       </DayButton>
-      <DayButton active={days[3]} onClick={() => onClickHandler(3)}>
+      <DayButton selected={days[3]} onClick={() => onClickHandler(3)}>
         Mi
       </DayButton>
-      <DayButton active={days[4]} onClick={() => onClickHandler(4)}>
+      <DayButton selected={days[4]} onClick={() => onClickHandler(4)}>
         Ju
       </DayButton>
-      <DayButton active={days[5]} onClick={() => onClickHandler(5)}>
+      <DayButton selected={days[5]} onClick={() => onClickHandler(5)}>
         Vi
       </DayButton>
-      <DayButton active={days[6]} onClick={() => onClickHandler(6)}>
+      <DayButton selected={days[6]} onClick={() => onClickHandler(6)}>
         Sa
       </DayButton>
     </div>

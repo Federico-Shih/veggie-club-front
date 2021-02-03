@@ -649,8 +649,6 @@ function AdminMenu() {
 
 // Menu with the router switch and header
 function Menu(): ReactElement {
-  // Switches to admin tab
-  const [admin, setAdmin] = useState(false);
   // Activates log in popup
   const [loggingIn, setLog] = useState(false);
   // Login info
@@ -661,11 +659,11 @@ function Menu(): ReactElement {
   const history = useHistory();
   const { pathname: path } = useLocation();
 
-  useEffect(() => {
-    if (path === "/menu") {
-      setAdmin(false);
-    }
-  }, [path]);
+  // useEffect(() => {
+  //   if (path === "/menu") {
+  //     setAdmin(false);
+  //   }
+  // }, [path]);
 
   const setLogin = (status: boolean) => {
     if (!status) {
@@ -673,15 +671,6 @@ function Menu(): ReactElement {
       setPass("");
     }
     setLog(status);
-  };
-
-  const switchAdmin = () => {
-    if (admin) {
-      history.push("/menu");
-      setAdmin(false);
-    } else {
-      setLogin(true);
-    }
   };
 
   function handleChange(
@@ -700,7 +689,6 @@ function Menu(): ReactElement {
     ) {
       login({ user: username, password }).then((result) => {
         if (result) {
-          setAdmin(true);
           history.push(`${path}/settings`);
           setLogin(false);
           setUser("");
@@ -755,6 +743,8 @@ function Menu(): ReactElement {
     );
   };
 
+  const admin = path === "/menu/settings";
+
   return (
     <>
       <Header color={theme.secondary}>
@@ -772,7 +762,14 @@ function Menu(): ReactElement {
         </div>
         <SwitchButton
           icon={!admin ? faCog : faSignOutAlt}
-          onClick={switchAdmin}
+          onClick={() => {
+            console.log(admin);
+            if (admin) {
+              history.push("/menu");
+            } else {
+              setLog(true);
+            }
+          }}
         />
       </Header>
       <Switch>
