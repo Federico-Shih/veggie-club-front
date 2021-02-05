@@ -1,6 +1,6 @@
 export type Category = {
-  text: string;
-  img: string;
+  name: string;
+  image: string;
   id: string;
 };
 
@@ -17,9 +17,10 @@ export enum Days {
 export type Food = {
   name: string;
   description: string;
-  img: string;
+  image: string;
   id: string;
   days: Days[];
+  visible: boolean;
 };
 
 export const NullFood = {
@@ -27,11 +28,13 @@ export const NullFood = {
   name: "",
   id: "-1",
   description: "",
-  img: "",
+  image: "",
+  visible: true,
 } as Food;
+
 export const NullCategory = {
-  text: "",
-  img: "",
+  name: "",
+  image: "",
   id: "-1",
 } as Category;
 export const NullFoodArray = [] as Food[];

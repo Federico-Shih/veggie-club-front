@@ -86,6 +86,7 @@ export const CategoryButton = styled.button<CategoryProps>`
   height: 25vh;
   max-height: 120px;
   outline: none;
+  position: relative;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   &:active {
     transform: translateY(3px);
@@ -190,6 +191,7 @@ export const FoodThumbnail = styled(ButtonBase)`
   display: flex;
   flex-direction: column;
   align-self: center;
+  position: relative;
   width: 44vw;
   min-width: 50px;
   -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=315, Color=#000000)"; /*IE 8*/
@@ -328,5 +330,20 @@ export const AddCategoryButton = styled(Button)`
   }
   @media only screen and (max-width: 600px) {
     margin: 5px;
+  }
+`;
+
+export const DeleteContainer = styled.div`
+  width: 80vw;
+  height: 200px;
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  @media only screen and (min-width: 600px) {
+    width: 400px;
   }
 `;

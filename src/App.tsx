@@ -6,7 +6,7 @@ import Landing from "./landing";
 import Menu from "./menu/menu";
 import { StylesProvider } from "@material-ui/core/styles";
 
-function App() {
+function App(): React.ReactElement {
   return (
     <div className="App">
       <StylesProvider injectFirst>

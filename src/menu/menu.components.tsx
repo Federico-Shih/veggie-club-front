@@ -6,12 +6,19 @@ import React, {
   useState,
 } from "react";
 
-import { FoodContainer, FoodImage, FoodTextContainer } from "./menu.styles";
-import { Category, CategorySaveDto, Days, Food, NullFood } from "./types";
+import {
+  DeleteContainer,
+  FoodContainer,
+  FoodImage,
+  FoodTextContainer,
+} from "./menu.styles";
+import { Category, Days, Food, NullFood } from "./types";
 import noImage from "../img/no-image.jpg";
 import {
   Backdrop,
   Button,
+  Checkbox,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   TextField,
@@ -21,6 +28,7 @@ import {
   faCamera,
   faPencilAlt,
   faSave,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useWindowWidth } from "@react-hook/window-size";
 import styled from "styled-components";
@@ -29,7 +37,6 @@ import TextFit from "react-textfit";
 import { v4 as uuid } from "uuid";
 
 import "react-image-crop/dist/ReactCrop.css";
-import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
 import { LoaderWrapper } from "components/utilities";
 import { SyncLoader } from "react-spinners";
 
@@ -228,16 +235,19 @@ const renderSaveMessage = (saveState: SaveState) => {
 export const CategoryEditor = ({
   category,
   onSave,
+  onDelete,
 }: {
   category: Category;
   onSave: (temp: Category) => Promise<Category>;
+  onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
   const noCategory = Object.keys(category).length === 0;
-  const [title, setTitle] = useState(noCategory ? "" : category.text);
+  const [title, setTitle] = useState(noCategory ? "" : category.name);
   const [imageToEdit, setImageToEdit] = useState(
-    noCategory ? "" : category.img
+    noCategory ? "" : category.image
   );
 
+  const [deleting, setDeleting] = useState(false);
   const [editing, setEdit] = useState(false);
   const [editingImage, setEditingImage] = useState(false);
   const [saveState, setSaveState] = useState(SaveState.NotSaved);
@@ -246,8 +256,8 @@ export const CategoryEditor = ({
 
   // When props are updated
   useEffect(() => {
-    setTitle(noCategory ? "" : category.text);
-    setImageToEdit(noCategory ? "" : category.img);
+    setTitle(noCategory ? "" : category.name);
+    setImageToEdit(noCategory ? "" : category.image);
   }, [category]);
 
   // On image edited
@@ -267,7 +277,11 @@ export const CategoryEditor = ({
     }
     setSaveState(SaveState.Saving);
     try {
-      await onSave({ img: imageToEdit, text: title, id: category?.id ?? "-1" });
+      await onSave({
+        image: imageToEdit,
+        name: title,
+        id: category?.id ?? "-1",
+      });
     } catch (e) {
       setSaveState(SaveState.Error);
       console.error(e);
@@ -329,7 +343,14 @@ export const CategoryEditor = ({
           style={
             mobile
               ? {}
-              : { position: "absolute", bottom: 0, left: 0, margin: 20 }
+              : {
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  margin: 20,
+                  display: "flex",
+                  flexWrap: "wrap",
+                }
           }
         >
           <LoaderWrapper
@@ -343,6 +364,19 @@ export const CategoryEditor = ({
             >
               Guardar
             </Button>
+            {category.id !== "-1" ? (
+              <Button
+                startIcon={<FontAwesomeIcon icon={faTrash} />}
+                variant={mobile ? "contained" : "outlined"}
+                onClick={() => {
+                  setDeleting(true);
+                }}
+              >
+                Borrar
+              </Button>
+            ) : (
+              <></>
+            )}
             <div>{renderSaveMessage(saveState)}</div>
           </LoaderWrapper>
         </div>
@@ -357,6 +391,38 @@ export const CategoryEditor = ({
       >
         <ImageCropper image={imageToEdit} setFinalImage={setImageToEdit} />
       </Backdrop>
+      <Backdrop
+        onClick={(e) => {
+          e.stopPropagation();
+          setDeleting(false);
+        }}
+        open={deleting}
+        style={{ zIndex: 1001 }}
+      >
+        <DeleteContainer>
+          <div>Estas seguro de borrar la categoría {category.name}?</div>
+          <Button
+            style={{ margin: 5 }}
+            variant="contained"
+            onClick={async () => {
+              setSaveState(SaveState.Saving);
+              await onDelete(category.id);
+              setSaveState(SaveState.NotSaved);
+            }}
+          >
+            Borrar
+          </Button>
+          <Button
+            style={{ margin: 5 }}
+            variant="contained"
+            onClick={() => {
+              setDeleting(false);
+            }}
+          >
+            Cancelar
+          </Button>
+        </DeleteContainer>
+      </Backdrop>
     </FoodContainer>
   );
 };
@@ -364,23 +430,26 @@ export const CategoryEditor = ({
 export const FoodEditor = ({
   food = NullFood,
   onSave,
+  onDelete,
 }: {
   food: Food;
   onSave: (temp: Food) => Promise<Food>;
+  onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
   const [editedFood, setEditedFood] = useState(food);
   const [editingName, setEditingName] = useState(false);
   const [editingImage, setEditingImage] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [saveState, setSaveState] = useState(SaveState.NotSaved);
 
-  const setImageToEdit = (img: string) => {
-    setEditedFood({ ...editedFood, img });
+  const setImageToEdit = (image: string) => {
+    setEditedFood({ ...editedFood, image });
   };
 
   useEffect(() => {
     setEditingImage(false);
-  }, [editedFood.img]);
+  }, [editedFood.image]);
 
   useEffect(() => {
     setEditedFood(food);
@@ -397,7 +466,7 @@ export const FoodEditor = ({
       setSaveState(SaveState.NoTitle);
       return;
     }
-    if (editedFood?.img === "") {
+    if (editedFood?.image === "") {
       setSaveState(SaveState.NoImg);
       return;
     }
@@ -408,13 +477,14 @@ export const FoodEditor = ({
 
     setSaveState(SaveState.Saving);
     try {
-      const { img, name, description } = editedFood;
+      const { image, name, description } = editedFood;
       await onSave({
-        img,
+        image,
         name,
         id: editedFood.id,
         description: description ?? "",
         days: editedDays,
+        visible: editedFood.visible,
       });
     } catch (e) {
       console.error(e);
@@ -436,7 +506,7 @@ export const FoodEditor = ({
       }}
     >
       <FoodImage
-        src={editedFood.img !== "" ? editedFood.img : noImage}
+        src={editedFood.image !== "" ? editedFood.image : noImage}
       ></FoodImage>
       <FontAwesomeIcon
         onClick={(e) => {
@@ -502,6 +572,17 @@ export const FoodEditor = ({
           variant={mobile ? "outlined" : "filled"}
         />
         <DaysChooser initialDays={food.days} setDays={setEditedDays} />
+        <FormControlLabel
+          label="visible"
+          control={
+            <Checkbox
+              checked={editedFood.visible}
+              onChange={() => {
+                setEditedFood({ ...editedFood, visible: !editedFood.visible });
+              }}
+            />
+          }
+        />
         <div
           style={
             mobile
@@ -520,6 +601,19 @@ export const FoodEditor = ({
             >
               Guardar
             </Button>
+            {food.id !== "-1" ? (
+              <Button
+                style={{ margin: 5 }}
+                variant="contained"
+                onClick={async () => {
+                  setDeleting(true);
+                }}
+              >
+                Borrar
+              </Button>
+            ) : (
+              <></>
+            )}
             <div>{renderSaveMessage(saveState)}</div>
           </LoaderWrapper>
         </div>
@@ -533,9 +627,41 @@ export const FoodEditor = ({
         style={{ zIndex: 1002 }}
       >
         <ImageCropper
-          image={editedFood?.img ?? ""}
+          image={editedFood?.image ?? ""}
           setFinalImage={setImageToEdit}
         />
+      </Backdrop>
+      <Backdrop
+        onClick={(e) => {
+          e.stopPropagation();
+          setDeleting(false);
+        }}
+        open={deleting}
+        style={{ zIndex: 1001 }}
+      >
+        <DeleteContainer>
+          <div>Estas seguro de borrar la comida {food.name}?</div>
+          <Button
+            style={{ margin: 5 }}
+            variant="contained"
+            onClick={async () => {
+              setSaveState(SaveState.Saving);
+              await onDelete(food.id);
+              setSaveState(SaveState.NotSaved);
+            }}
+          >
+            Borrar
+          </Button>
+          <Button
+            style={{ margin: 5 }}
+            variant="contained"
+            onClick={() => {
+              setDeleting(false);
+            }}
+          >
+            Cancelar
+          </Button>
+        </DeleteContainer>
       </Backdrop>
     </FoodContainer>
   );

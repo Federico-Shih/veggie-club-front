@@ -43,6 +43,7 @@ import {
   modifyCategory,
   createFood,
   modifyFood,
+  deleteCategory,
 } from "./api";
 import {
   Header,
@@ -76,7 +77,8 @@ import {
 } from "./types";
 import { CategoryEditor, FoodEditor } from "./menu.components";
 import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
-import { Food } from "./types";
+import { Food, Days } from "./types";
+import { deleteFood } from "./api";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -171,7 +173,7 @@ function NormalMenu() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
 
-  const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  const [selectedDay, setDay] = useState(new Date().getDay());
   const [selectedCategory, setCategory] = useState(NullCategory);
   const [showedFood, setShowedFood] = useState(NullFood);
   const [categories, setCategories] = useState(NullCategoryArray);
@@ -180,11 +182,14 @@ function NormalMenu() {
   const history = useHistory();
   const { pathname: path } = useLocation();
 
-  const categoryClickHandler = async (category: Category) => {
+  const categoryClickHandler = async (category: Category, day?: Days) => {
     setLoadingFoods(true);
-    history.push(`${path}?categoria=${category.text}`);
+    history.push(`${path}?categoria=${category.name}`);
     setCategory(category);
-    const foodCall = await getFoodsByDayAndCategory(category.id, selectedDay);
+    const foodCall = await getFoodsByDayAndCategory(
+      category.id,
+      day ?? selectedDay
+    );
     setFoods(foodCall);
     setLoadingFoods(false);
   };
@@ -194,37 +199,48 @@ function NormalMenu() {
     setLoadingCategory(true);
     const asyncEffect = async () => {
       const categoryList = await getCategories();
+      setCategories(categoryList);
       if (categoryList.length !== 0) {
-        setCategories(categoryList);
-        if (categoryList.length !== 0) {
-          if (!mobile) {
-            categoryClickHandler(categoryList[0]);
-          }
+        if (!mobile) {
+          categoryClickHandler(categoryList[0]);
         }
       }
       setLoadingCategory(false);
     };
-    asyncEffect();
+    try {
+      asyncEffect();
+    } catch (err) {
+      console.error(err);
+      // TO IMPLEMENT ERROR HANDLING
+    }
   }, []);
 
   const categoryQuery = useQuery().get("categoria");
 
-  useEffect(() => {
+  const setSelectedDay = async (day: Days) => {
+    setDay(day);
     setLoadingFoods(true);
-    const getFoodsCall = async () => {
-      const foodCall = await getFoodsByDayAndCategory(
-        selectedCategory.id,
-        selectedDay
-      );
-      setFoods(foodCall);
-      setLoadingFoods(false);
-    };
+    const foodCall = await getFoodsByDayAndCategory(selectedCategory.id, day);
+    setFoods(foodCall);
+    setLoadingFoods(false);
+  };
 
-    getFoodsCall();
-  }, [selectedDay]);
+  // useEffect(() => {
+  //   setLoadingFoods(true);
+  //   const getFoodsCall = async () => {
+  //     const foodCall = await getFoodsByDayAndCategory(
+  //       selectedCategory.id,
+  //       selectedDay
+  //     );
+  //     setFoods(foodCall);
+  //     setLoadingFoods(false);
+  //   };
+
+  //   getFoodsCall();
+  // }, [selectedDay]);
 
   const mobile = useWindowWidth() < 600;
-  const foodSelected = showedFood.img !== "";
+  const foodSelected = showedFood.image !== "";
   const theme = useContext(ThemeContext);
 
   return (
@@ -247,17 +263,17 @@ function NormalMenu() {
             <CategoriesImageContainer>
               {categories.length !== 0 ? (
                 categories.map((categoryTemp) => {
-                  const { text, img, id } = categoryTemp;
+                  const { name, image, id } = categoryTemp;
                   return (
                     <CategoryButton
                       onClick={() => {
                         categoryClickHandler(categoryTemp);
                       }}
                       key={id}
-                      src={img}
+                      src={image}
                       active={id === selectedCategory.id}
                     >
-                      <CategoryText>{text}</CategoryText>
+                      <CategoryText>{name}</CategoryText>
                     </CategoryButton>
                   );
                 })
@@ -288,7 +304,7 @@ function NormalMenu() {
           >
             <>
               {foods.length !== 0 ? (
-                foods.map(({ name, description, img, id, days }) => (
+                foods.map(({ name, description, image, id, days }) => (
                   <FoodPadding key={id}>
                     <FoodThumbnail
                       onClick={() => {
@@ -296,12 +312,13 @@ function NormalMenu() {
                           name,
                           description,
                           days,
-                          img,
+                          image,
                           id,
+                          visible: true,
                         });
                       }}
                     >
-                      <FoodImageThumbnail src={img} />
+                      <FoodImageThumbnail src={image} />
                       <FoodNameThumbnail
                         mode="single"
                         forceSingleModeWidth={false}
@@ -326,7 +343,7 @@ function NormalMenu() {
         style={{ zIndex: 1000 }}
       >
         <FoodContainer>
-          <FoodImage src={showedFood.img} onClick={stopPropagation} />
+          <FoodImage src={showedFood.image} onClick={stopPropagation} />
           <FoodTextContainer onClick={stopPropagation}>
             <FoodName>{showedFood.name}</FoodName>
             <hr style={{ border: `1px solid ${mobile ? "white" : "black"}` }} />
@@ -350,7 +367,7 @@ function AdminMenu() {
   const [loadingFoods, setLoadingFoods] = useState(false);
 
   const [selectedCategory, setCategory] = useState(NullCategory);
-  const [categories, setCategories] = useState(NullCategoryArray);
+  const [categories, setCategories] = useState([] as Category[]);
   const [foods, setFoods] = useState(NullFoodArray);
 
   // Category and Food's editor
@@ -370,7 +387,7 @@ function AdminMenu() {
     setLoadingFoods(true);
 
     // Used for mobile back functionality
-    history.push(`${path}?categoria=${category.text}`);
+    history.push(`${path}?categoria=${category.name}`);
     setCategory(category);
     const foodCall = await getFoodsByDayAndCategory(category.id);
     setFoods(foodCall);
@@ -382,24 +399,26 @@ function AdminMenu() {
     setLoadingCategory(true);
     const asyncEffect = async () => {
       const categoryList = await getCategories();
+      setCategories(categoryList);
       if (categoryList.length !== 0) {
-        setCategories(categoryList);
-        if (categoryList.length !== 0) {
-          if (!mobile) {
-            categoryClickHandler(categoryList[0]);
-          }
+        if (!mobile) {
+          categoryClickHandler(categoryList[0]);
         }
       }
       setLoadingCategory(false);
     };
-    asyncEffect();
+    try {
+      asyncEffect();
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
 
   // Function passed to category editor component
   const onCategorySave = async (savedCategory: Category) => {
-    const { img, text, id } = savedCategory;
+    const { image, name, id } = savedCategory;
     if (id === "-1") {
-      const newCategory = await createCategory(text, img);
+      const newCategory = await createCategory(name, image);
       if (newCategory) {
         const newCategoryList = [...categories];
         newCategoryList.push(newCategory);
@@ -409,7 +428,15 @@ function AdminMenu() {
       }
       return Promise.resolve(newCategory);
     } else {
-      const modifiedCategory = await modifyCategory(savedCategory);
+      let modifiedCategory;
+      if (savedCategory.image === editedCategory?.image) {
+        modifiedCategory = await modifyCategory({
+          id: savedCategory.id,
+          name: savedCategory.name,
+        });
+      } else {
+        modifiedCategory = await modifyCategory(savedCategory);
+      }
       if (modifiedCategory) {
         const newCategoryList = [...categories];
         for (let i = 0; i < newCategoryList.length; i += 1) {
@@ -427,10 +454,10 @@ function AdminMenu() {
   };
 
   const onFoodSave = async (savedFood: Food) => {
-    const { img, name, description, id, days } = savedFood;
+    const { image, name, description, id, days, visible } = savedFood;
     if (id === "-1") {
       const newFood = await createFood(
-        { img, name, description, days },
+        { image, name, description, days, visible },
         selectedCategory.id
       );
       if (newFood) {
@@ -442,7 +469,7 @@ function AdminMenu() {
       }
       return Promise.resolve(newFood);
     } else {
-      const modifiedFood = await modifyFood(savedFood);
+      const modifiedFood = await modifyFood(savedFood, editedFood as Food);
       if (modifiedFood) {
         const newFoodList = [...foods];
         for (let i = 0; i < newFoodList.length; i += 1) {
@@ -457,6 +484,22 @@ function AdminMenu() {
       }
       return Promise.resolve(savedFood);
     }
+  };
+
+  const onFoodDelete = async (foodId: string) => {
+    await deleteFood(foodId);
+    const newFoods = foods.filter((food) => food.id !== foodId);
+    setFoods(newFoods);
+    setShowedFood({ show: false });
+  };
+
+  const onCategoryDelete = async (categoryId: string) => {
+    await deleteCategory(categoryId);
+    const newCategories = categories.filter(
+      (category) => category.id !== categoryId
+    );
+    setCategories(newCategories);
+    setCategoryEditor({ show: false });
   };
 
   const categoryQuery = useQuery().get("categoria");
@@ -486,18 +529,18 @@ function AdminMenu() {
                     {categories.length !== 0 ? (
                       <>
                         {categories.map((categoryTemp) => {
-                          const { text, img, id } = categoryTemp;
+                          const { name, image, id } = categoryTemp;
                           return (
                             <CategoryButton
                               onClick={() => {
                                 categoryClickHandler(categoryTemp);
                               }}
                               key={id}
-                              src={img}
+                              src={image}
                               active={id === selectedCategory.id}
                               style={{ position: "relative" }}
                             >
-                              <CategoryText>{text}</CategoryText>
+                              <CategoryText>{name}</CategoryText>
                               <FAIcon
                                 size="lg"
                                 icon={faEdit}
@@ -555,32 +598,35 @@ function AdminMenu() {
                 >
                   <>
                     {foods.length !== 0 ? (
-                      foods.map(({ name, description, img, id, days }) => (
-                        <FoodPadding key={id}>
-                          <FoodThumbnail
-                            onClick={() => {
-                              setShowedFood({
-                                show: true,
-                                food: {
-                                  name,
-                                  description: description ? description : "",
-                                  img,
-                                  id,
-                                  days,
-                                },
-                              });
-                            }}
-                          >
-                            <FoodImageThumbnail src={img} />
-                            <FoodNameThumbnail
-                              mode="single"
-                              forceSingleModeWidth={false}
+                      foods.map(
+                        ({ name, description, image, id, days, visible }) => (
+                          <FoodPadding key={id}>
+                            <FoodThumbnail
+                              onClick={() => {
+                                setShowedFood({
+                                  show: true,
+                                  food: {
+                                    name,
+                                    description: description ? description : "",
+                                    image,
+                                    id,
+                                    days,
+                                    visible,
+                                  },
+                                });
+                              }}
                             >
-                              {name}
-                            </FoodNameThumbnail>
-                          </FoodThumbnail>
-                        </FoodPadding>
-                      ))
+                              <FoodImageThumbnail src={image} />
+                              <FoodNameThumbnail
+                                mode="single"
+                                forceSingleModeWidth={false}
+                              >
+                                {name}
+                              </FoodNameThumbnail>
+                            </FoodThumbnail>
+                          </FoodPadding>
+                        )
+                      )
                     ) : (
                       <></>
                     )}
@@ -610,6 +656,7 @@ function AdminMenu() {
               style={{ zIndex: 1000 }}
             >
               <CategoryEditor
+                onDelete={onCategoryDelete}
                 onSave={onCategorySave}
                 category={editedCategory as Category}
               />
@@ -621,7 +668,11 @@ function AdminMenu() {
               }}
               style={{ zIndex: 1000 }}
             >
-              <FoodEditor food={editedFood as Food} onSave={onFoodSave} />
+              <FoodEditor
+                food={editedFood as Food}
+                onSave={onFoodSave}
+                onDelete={onFoodDelete}
+              />
             </Backdrop>
           </div>
         </Route>
@@ -763,7 +814,6 @@ function Menu(): ReactElement {
         <SwitchButton
           icon={!admin ? faCog : faSignOutAlt}
           onClick={() => {
-            console.log(admin);
             if (admin) {
               history.push("/menu");
             } else {
