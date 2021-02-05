@@ -4,7 +4,7 @@ export type Category = {
   id: string;
 };
 
-export enum Days {
+export enum Day {
   Sunday = 0,
   Monday,
   Tuesday,
@@ -14,17 +14,24 @@ export enum Days {
   Saturday,
 }
 
+export enum AlertLevel {
+  error = "error",
+  warning = "warning",
+  info = "info",
+  success = "success",
+}
+
 export type Food = {
   name: string;
   description: string;
   image: string;
   id: string;
-  days: Days[];
+  days: Day[];
   visible: boolean;
 };
 
 export const NullFood = {
-  days: [],
+  days: [0, 1, 2, 3, 4, 5, 6 ],
   name: "",
   id: "-1",
   description: "",

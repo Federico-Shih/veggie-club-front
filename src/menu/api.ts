@@ -1,7 +1,7 @@
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import path from "path";
-import { Category, Days, Food } from "./types";
+import { Category, Day, Food } from "./types";
 
 const serverURL = "http://localhost:5000/";
 
@@ -56,7 +56,7 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const getFoodsByDayAndCategory = async (
   categoryId: string,
-  day?: Days
+  day?: Day
 ): Promise<Food[]> => {
   const res = await axios.get("/foods", {
     params: {
@@ -68,7 +68,7 @@ export const getFoodsByDayAndCategory = async (
   const newFoods = res.data.foods.map(
     (food: {
       categoryId: string;
-      days: Days[];
+      days: Day[];
       description: string;
       image: string;
       name: string;
@@ -150,7 +150,7 @@ export const createFood = async (
     name: string;
     description: string;
     image: string;
-    days: Days[];
+    days: Day[];
     visible: boolean;
   },
   categoryId: string

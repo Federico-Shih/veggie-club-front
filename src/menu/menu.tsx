@@ -29,8 +29,10 @@ import {
   ListItemIcon,
   ListItemText,
   Backdrop,
+  Snackbar,
 } from "@material-ui/core";
 import { Action, Fab } from "react-tiny-fab";
+import { Alert } from "@material-ui/lab";
 
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
@@ -74,10 +76,11 @@ import {
   NullFoodArray,
   NullCategory,
   Category,
+  AlertLevel,
 } from "./types";
 import { CategoryEditor, FoodEditor } from "./menu.components";
 import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
-import { Food, Days } from "./types";
+import { Food, Day } from "./types";
 import { deleteFood } from "./api";
 
 function useQuery() {
@@ -179,18 +182,40 @@ function NormalMenu() {
   const [categories, setCategories] = useState(NullCategoryArray);
   const [foods, setFoods] = useState(NullFoodArray);
 
+  const [alertMessage, setAlert] = useState({
+    message: "",
+    level: AlertLevel.info,
+  });
+
   const history = useHistory();
   const { pathname: path } = useLocation();
 
-  const categoryClickHandler = async (category: Category, day?: Days) => {
+  const categoryClickHandler = async (category: Category, day?: Day) => {
     setLoadingFoods(true);
     history.push(`${path}?categoria=${category.name}`);
     setCategory(category);
-    const foodCall = await getFoodsByDayAndCategory(
-      category.id,
-      day ?? selectedDay
-    );
-    setFoods(foodCall);
+    try {
+      const foodCall = await getFoodsByDayAndCategory(
+        category.id,
+        day ?? selectedDay
+      );
+      setFoods(foodCall);
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 404) {
+          setAlert({
+            message: "No existe la categoria",
+            level: AlertLevel.error,
+          });
+        } else {
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        }
+      }
+    }
     setLoadingFoods(false);
   };
 
@@ -210,34 +235,51 @@ function NormalMenu() {
     try {
       asyncEffect();
     } catch (err) {
-      console.error(err);
-      // TO IMPLEMENT ERROR HANDLING
+      if (err.response) {
+        if (err.response) {
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        }
+      }
     }
   }, []);
 
   const categoryQuery = useQuery().get("categoria");
 
-  const setSelectedDay = async (day: Days) => {
+  const setSelectedDay = async (day: Day) => {
     setDay(day);
     setLoadingFoods(true);
-    const foodCall = await getFoodsByDayAndCategory(selectedCategory.id, day);
-    setFoods(foodCall);
+    try {
+      const foodCall = await getFoodsByDayAndCategory(selectedCategory.id, day);
+      setFoods(foodCall);
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 404) {
+          setAlert({
+            message: "No existe la categoria",
+            level: AlertLevel.error,
+          });
+        } else {
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        }
+      }
+    }
     setLoadingFoods(false);
   };
 
-  // useEffect(() => {
-  //   setLoadingFoods(true);
-  //   const getFoodsCall = async () => {
-  //     const foodCall = await getFoodsByDayAndCategory(
-  //       selectedCategory.id,
-  //       selectedDay
-  //     );
-  //     setFoods(foodCall);
-  //     setLoadingFoods(false);
-  //   };
+  const handleAlertClose = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === "clickaway") {
+      return;
+    }
 
-  //   getFoodsCall();
-  // }, [selectedDay]);
+    setAlert({ message: "", level: AlertLevel.info });
+  };
 
   const mobile = useWindowWidth() < 600;
   const foodSelected = showedFood.image !== "";
@@ -352,6 +394,15 @@ function NormalMenu() {
         </FoodContainer>
       </Backdrop>
       <DaySelector selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
+      <Snackbar
+        open={alertMessage.message !== ""}
+        autoHideDuration={2000}
+        onClose={handleAlertClose}
+      >
+        <Alert onClose={handleAlertClose} severity={alertMessage.level}>
+          {alertMessage.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
@@ -369,6 +420,11 @@ function AdminMenu() {
   const [selectedCategory, setCategory] = useState(NullCategory);
   const [categories, setCategories] = useState([] as Category[]);
   const [foods, setFoods] = useState(NullFoodArray);
+
+  const [alertMessage, setAlert] = useState({
+    message: "",
+    level: AlertLevel.info,
+  });
 
   // Category and Food's editor
   const [
@@ -389,8 +445,26 @@ function AdminMenu() {
     // Used for mobile back functionality
     history.push(`${path}?categoria=${category.name}`);
     setCategory(category);
-    const foodCall = await getFoodsByDayAndCategory(category.id);
-    setFoods(foodCall);
+    try {
+      const foodCall = await getFoodsByDayAndCategory(category.id);
+      setFoods(foodCall);
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 404) {
+          setAlert({
+            message: "No existe la categoria",
+            level: AlertLevel.error,
+          });
+        } else {
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        }
+      }
+    }
+
     setLoadingFoods(false);
   };
 
@@ -410,33 +484,78 @@ function AdminMenu() {
     try {
       asyncEffect();
     } catch (err) {
-      console.error(err);
+      if (err.response) {
+        setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
+      }
     }
   }, []);
+
+  const handleAlertClose = (event?: React.SyntheticEvent, reason?: string) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setAlert({ message: "", level: AlertLevel.info });
+  };
 
   // Function passed to category editor component
   const onCategorySave = async (savedCategory: Category) => {
     const { image, name, id } = savedCategory;
     if (id === "-1") {
-      const newCategory = await createCategory(name, image);
-      if (newCategory) {
-        const newCategoryList = [...categories];
-        newCategoryList.push(newCategory);
-        setCategories(newCategoryList);
-      } else {
-        throw new CategoryNotSavedError();
+      try {
+        const newCategory = await createCategory(name, image);
+        if (newCategory) {
+          const newCategoryList = [...categories];
+          newCategoryList.push(newCategory);
+          setCategories(newCategoryList);
+        } else {
+          throw new CategoryNotSavedError();
+        }
+      } catch (err) {
+        if (err.response) {
+          if (err.response.status === 409) {
+            setAlert({
+              message: "Categoría ya existe",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
+        }
+        throw new Error();
       }
-      return Promise.resolve(newCategory);
     } else {
       let modifiedCategory;
-      if (savedCategory.image === editedCategory?.image) {
-        modifiedCategory = await modifyCategory({
-          id: savedCategory.id,
-          name: savedCategory.name,
-        });
-      } else {
-        modifiedCategory = await modifyCategory(savedCategory);
+      try {
+        if (savedCategory.image === editedCategory?.image) {
+          modifiedCategory = await modifyCategory({
+            id: savedCategory.id,
+            name: savedCategory.name,
+          });
+        } else {
+          modifiedCategory = await modifyCategory(savedCategory);
+        }
+      } catch (err) {
+        if (err.response) {
+          const { status } = err.response;
+          if (status === 409) {
+            setAlert({
+              message: "Ya existe la categoría",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
+        }
+        throw new Error();
       }
+
       if (modifiedCategory) {
         const newCategoryList = [...categories];
         for (let i = 0; i < newCategoryList.length; i += 1) {
@@ -445,60 +564,160 @@ function AdminMenu() {
             break;
           }
         }
+        console.log(modifiedCategory);
         setCategories(newCategoryList);
       } else {
         throw new CategoryNotSavedError();
       }
-      return Promise.resolve(modifiedCategory);
     }
   };
 
   const onFoodSave = async (savedFood: Food) => {
     const { image, name, description, id, days, visible } = savedFood;
     if (id === "-1") {
-      const newFood = await createFood(
-        { image, name, description, days, visible },
-        selectedCategory.id
-      );
-      if (newFood) {
-        const newFoodList = [...foods];
-        newFoodList.push(newFood);
-        setFoods(newFoodList);
-      } else {
-        throw new FoodNotSavedError();
-      }
-      return Promise.resolve(newFood);
-    } else {
-      const modifiedFood = await modifyFood(savedFood, editedFood as Food);
-      if (modifiedFood) {
-        const newFoodList = [...foods];
-        for (let i = 0; i < newFoodList.length; i += 1) {
-          if (newFoodList[i].id === modifiedFood.id) {
-            newFoodList[i] = modifiedFood;
-            break;
+      try {
+        const newFood = await createFood(
+          { image, name, description, days, visible },
+          selectedCategory.id
+        );
+        if (newFood) {
+          const newFoodList = [...foods];
+          newFoodList.push(newFood);
+          setFoods(newFoodList);
+        } else {
+          throw new FoodNotSavedError();
+        }
+      } catch (err) {
+        if (err.response) {
+          const { status } = err.response;
+          if (status === 409) {
+            setAlert({
+              message: "La comida ya existe",
+              level: AlertLevel.error,
+            });
+          } else if (status === 404) {
+            setAlert({
+              message: "La categoría no existe",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
           }
         }
-        setFoods(newFoodList);
-      } else {
-        throw new FoodNotSavedError();
+        throw new Error();
       }
-      return Promise.resolve(savedFood);
+    } else {
+      try {
+        const modifiedFood = await modifyFood(savedFood, editedFood as Food);
+        if (modifiedFood) {
+          const newFoodList = [...foods];
+          for (let i = 0; i < newFoodList.length; i += 1) {
+            if (newFoodList[i].id === modifiedFood.id) {
+              newFoodList[i] = modifiedFood;
+              break;
+            }
+          }
+          setFoods(newFoodList);
+        } else {
+          throw new FoodNotSavedError();
+        }
+      } catch (err) {
+        if (err.response) {
+          const { status } = err.response;
+          if (status === 409) {
+            setAlert({
+              message: "La comida ya existe",
+              level: AlertLevel.error,
+            });
+          } else if (status === 404) {
+            setAlert({
+              message: "La comida no existe",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
+          throw new Error();
+        }
+      }
     }
   };
 
   const onFoodDelete = async (foodId: string) => {
-    await deleteFood(foodId);
+    try {
+      await deleteFood(foodId);
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 404) {
+          setAlert({ message: "No existe la comida", level: AlertLevel.error });
+        } else {
+          setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
+        }
+      }
+    }
     const newFoods = foods.filter((food) => food.id !== foodId);
     setFoods(newFoods);
     setShowedFood({ show: false });
   };
 
   const onCategoryDelete = async (categoryId: string) => {
-    await deleteCategory(categoryId);
+    try {
+      await deleteCategory(categoryId);
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 404) {
+          setAlert({
+            message: "No existe la categoría",
+            level: AlertLevel.error,
+          });
+        } else {
+          setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
+        }
+      }
+    }
     const newCategories = categories.filter(
       (category) => category.id !== categoryId
     );
     setCategories(newCategories);
+
+    if (newCategories.length !== 0 && !mobile) {
+      setCategory(newCategories[0]);
+      setLoadingFoods(true);
+      history.push(`${path}?categoria=${newCategories[0].name}`);
+      try {
+        const foodCall = await getFoodsByDayAndCategory(newCategories[0].id);
+        setFoods(foodCall);
+      } catch (err) {
+        if (err.response) {
+          const { status } = err.response;
+          if (status === 404) {
+            setAlert({
+              message: "No existe la categoria",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
+        }
+      }
+      setLoadingFoods(false);
+    } else if (mobile) {
+      setFoods(NullFoodArray);
+    } else {
+      setFoods(NullFoodArray);
+      history.push(`${path}`);
+    }
     setCategoryEditor({ show: false });
   };
 
@@ -526,66 +745,50 @@ function AdminMenu() {
                   loading={loadingCategory}
                 >
                   <CategoriesImageContainer>
-                    {categories.length !== 0 ? (
-                      <>
-                        {categories.map((categoryTemp) => {
-                          const { name, image, id } = categoryTemp;
-                          return (
-                            <CategoryButton
-                              onClick={() => {
-                                categoryClickHandler(categoryTemp);
+                    <>
+                      {categories.map((categoryTemp) => {
+                        const { name, image, id } = categoryTemp;
+                        return (
+                          <CategoryButton
+                            onClick={() => {
+                              categoryClickHandler(categoryTemp);
+                            }}
+                            key={id}
+                            src={image}
+                            active={id === selectedCategory.id}
+                            style={{ position: "relative" }}
+                          >
+                            <CategoryText>{name}</CategoryText>
+                            <FAIcon
+                              size="lg"
+                              icon={faEdit}
+                              onClick={(e) => {
+                                // To avoid clicking the category button
+                                e.stopPropagation();
+                                setCategoryEditor({
+                                  show: true,
+                                  category: categoryTemp,
+                                });
                               }}
-                              key={id}
-                              src={image}
-                              active={id === selectedCategory.id}
-                              style={{ position: "relative" }}
-                            >
-                              <CategoryText>{name}</CategoryText>
-                              <FAIcon
-                                size="lg"
-                                icon={faEdit}
-                                onClick={(e) => {
-                                  // To avoid clicking the category button
-                                  e.stopPropagation();
-                                  setCategoryEditor({
-                                    show: true,
-                                    category: categoryTemp,
-                                  });
-                                }}
-                                style={{
-                                  position: "absolute",
-                                  right: 0,
-                                  top: 0,
-                                  margin: 10,
-                                }}
-                                color={mobile ? "white" : "black"}
-                              />
-                            </CategoryButton>
-                          );
-                        })}
-                        <AddCategoryButton
-                          onClick={() => {
-                            setCategoryEditor({ show: true });
-                          }}
-                        >
-                          +
-                        </AddCategoryButton>
-                      </>
-                    ) : (
-                      <div
-                        style={
-                          mobile
-                            ? { textAlign: "center" }
-                            : {
-                                fontSize: "16px",
-                                textAlign: "center",
-                                marginTop: "20px",
-                              }
-                        }
+                              style={{
+                                position: "absolute",
+                                right: 0,
+                                top: 0,
+                                margin: 10,
+                              }}
+                              color={mobile ? "white" : "black"}
+                            />
+                          </CategoryButton>
+                        );
+                      })}
+                      <AddCategoryButton
+                        onClick={() => {
+                          setCategoryEditor({ show: true });
+                        }}
                       >
-                        No hay categorías todavía
-                      </div>
-                    )}
+                        +
+                      </AddCategoryButton>
+                    </>
                   </CategoriesImageContainer>
                 </LoaderWrapper>
               </CategoriesContainer>
@@ -694,6 +897,15 @@ function AdminMenu() {
           </List>
         </Link>
       </Drawer>
+      <Snackbar
+        open={alertMessage.message !== ""}
+        autoHideDuration={2000}
+        onClose={handleAlertClose}
+      >
+        <Alert onClose={handleAlertClose} severity={alertMessage.level}>
+          {alertMessage.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

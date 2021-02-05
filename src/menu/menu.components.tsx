@@ -12,12 +12,13 @@ import {
   FoodImage,
   FoodTextContainer,
 } from "./menu.styles";
-import { Category, Days, Food, NullFood } from "./types";
+import { Category, Day, Food, NullFood } from "./types";
 import noImage from "../img/no-image.jpg";
 import {
   Backdrop,
   Button,
   Checkbox,
+  Dialog,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -238,7 +239,7 @@ export const CategoryEditor = ({
   onDelete,
 }: {
   category: Category;
-  onSave: (temp: Category) => Promise<Category>;
+  onSave: (temp: Category) => Promise<void>;
   onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
   const noCategory = Object.keys(category).length === 0;
@@ -391,9 +392,11 @@ export const CategoryEditor = ({
       >
         <ImageCropper image={imageToEdit} setFinalImage={setImageToEdit} />
       </Backdrop>
-      <Backdrop
+      <Dialog
         onClick={(e) => {
           e.stopPropagation();
+        }}
+        onClose={() => {
           setDeleting(false);
         }}
         open={deleting}
@@ -408,6 +411,7 @@ export const CategoryEditor = ({
               setSaveState(SaveState.Saving);
               await onDelete(category.id);
               setSaveState(SaveState.NotSaved);
+              setDeleting(false);
             }}
           >
             Borrar
@@ -422,7 +426,7 @@ export const CategoryEditor = ({
             Cancelar
           </Button>
         </DeleteContainer>
-      </Backdrop>
+      </Dialog>
     </FoodContainer>
   );
 };
@@ -433,7 +437,7 @@ export const FoodEditor = ({
   onDelete,
 }: {
   food: Food;
-  onSave: (temp: Food) => Promise<Food>;
+  onSave: (temp: Food) => Promise<void>;
   onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
   const [editedFood, setEditedFood] = useState(food);
@@ -457,7 +461,7 @@ export const FoodEditor = ({
 
   const editedDays = editedFood.days;
 
-  const setEditedDays = (days: Days[]) => {
+  const setEditedDays = (days: Day[]) => {
     setEditedFood({ ...editedFood, days });
   };
 
@@ -631,10 +635,12 @@ export const FoodEditor = ({
           setFinalImage={setImageToEdit}
         />
       </Backdrop>
-      <Backdrop
+      <Dialog
+        onClose={() => {
+          setDeleting(false);
+        }}
         onClick={(e) => {
           e.stopPropagation();
-          setDeleting(false);
         }}
         open={deleting}
         style={{ zIndex: 1001 }}
@@ -647,6 +653,7 @@ export const FoodEditor = ({
             onClick={async () => {
               setSaveState(SaveState.Saving);
               await onDelete(food.id);
+              setDeleting(false);
               setSaveState(SaveState.NotSaved);
             }}
           >
@@ -662,14 +669,14 @@ export const FoodEditor = ({
             Cancelar
           </Button>
         </DeleteContainer>
-      </Backdrop>
+      </Dialog>
     </FoodContainer>
   );
 };
 
 type DaysChooserProps = {
-  initialDays: Days[];
-  setDays: (temp: Days[]) => void;
+  initialDays: Day[];
+  setDays: (temp: Day[]) => void;
 };
 
 const DayButton = styled(IconButton)`
@@ -683,24 +690,24 @@ const DayButton = styled(IconButton)`
 
 const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
   const [days, setDaysState] = useState({
-    [Days.Monday]: false,
-    [Days.Tuesday]: false,
-    [Days.Wendnesday]: false,
-    [Days.Thursday]: false,
-    [Days.Friday]: false,
-    [Days.Saturday]: false,
-    [Days.Sunday]: false,
+    [Day.Monday]: false,
+    [Day.Tuesday]: false,
+    [Day.Wendnesday]: false,
+    [Day.Thursday]: false,
+    [Day.Friday]: false,
+    [Day.Saturday]: false,
+    [Day.Sunday]: false,
   });
 
   useEffect(() => {
     const newDays = {
-      [Days.Monday]: false,
-      [Days.Tuesday]: false,
-      [Days.Wendnesday]: false,
-      [Days.Thursday]: false,
-      [Days.Friday]: false,
-      [Days.Saturday]: false,
-      [Days.Sunday]: false,
+      [Day.Monday]: false,
+      [Day.Tuesday]: false,
+      [Day.Wendnesday]: false,
+      [Day.Thursday]: false,
+      [Day.Friday]: false,
+      [Day.Saturday]: false,
+      [Day.Sunday]: false,
     };
 
     for (let i = 0; i < initialDays.length; i += 1) {
@@ -709,7 +716,7 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
     setDaysState(newDays);
   }, [initialDays]);
 
-  const onClickHandler = (day: Days) => {
+  const onClickHandler = (day: Day) => {
     const newDays = {
       ...days,
       [day]: !days[day],
