@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ButtonBase, TextField } from "@material-ui/core";
+import { Button, ButtonBase, TextField } from "@material-ui/core";
 import styled, { css } from "styled-components";
+import TextFit from "react-textfit";
 
 // Login form
 export const SignInButton = styled.button`
@@ -15,24 +16,14 @@ export const InputStyle = styled(TextField)`
 `;
 
 export const LoginContainer = styled.div`
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0);
-  top: 100px;
   width: 80vw;
   height: 250px;
   border-radius: 5%;
+  display: flex;
+  position: relative;
   flex-direction: column;
   align-items: center;
   background-color: white;
-  opacity: ${({ active }) => {
-    if (active) return 1;
-    return 0;
-  }};
-  display: ${({ active }) => {
-    if (active) return "flex";
-    return "none";
-  }};
   @media only screen and (min-width: 600px) {
     width: 20vw;
     min-width: 300px;
@@ -78,20 +69,24 @@ export const Header = styled.div`
 `;
 
 // Categories
-
 const selected = css`
   border: 2px solid black;
   background-color: #a5a5a5;
   font-weight: bold;
 `;
 
-export const CategoryButton = styled.button`
+type CategoryProps = {
+  active: boolean;
+  src: string;
+};
+
+export const CategoryButton = styled.button<CategoryProps>`
   width: 45%;
-  font-size: 20px;
   border-width: 0px;
   height: 25vh;
   max-height: 120px;
   outline: none;
+  position: relative;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   &:active {
     transform: translateY(3px);
@@ -103,13 +98,17 @@ export const CategoryButton = styled.button`
 
   @media only screen and (min-width: 600px) {
     border-radius: 20px;
-    height: auto;
+    height: 40px;
     background-color: white;
     padding-top: 5px;
     padding-bottom: 5px;
     margin-top: 12px;
     width: 80%;
     background-image: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
   @media only screen and (max-width: 600px) {
@@ -126,7 +125,6 @@ export const CategoryButton = styled.button`
 
 export const CategoriesContainer = styled.div`
   width: 100%;
-  height: 90vh;
   margin-top: 10px;
   display: flex;
   flex-direction: column;
@@ -139,6 +137,7 @@ export const CategoriesContainer = styled.div`
     background-color: ${({ color }) => color};
     width: 250px;
     flex-wrap: nowrap;
+    min-height: 100vh;
   }
 `;
 
@@ -154,27 +153,36 @@ export const CategoriesImageContainer = styled.div`
   }
 `;
 
+export const CategoryText = styled(TextFit)`
+  color: white;
+  height: 30px;
+  font-size: 20px;
+  @media only screen and (min-width: 600px) {
+    color: black;
+    height: 100%;
+  }
+`;
+
 // Foods section
 export const FoodsSection = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+  width: 100%;
   justify-content: space-evenly;
-
   @media only screen and (max-width: 600px) {
-    margin: auto;
     margin-top: 8px;
   }
 
   @media only screen and (min-width: 600px) {
+    width: calc(100vw - 250px);
     min-height: 150px;
     min-width: 360px;
     overflow: hidden;
     height: 1%;
     margin: 10px;
     margin-top: 15px;
-    min-width: 300px;
     justify-content: flex-start;
   }
 `;
@@ -183,29 +191,36 @@ export const FoodThumbnail = styled(ButtonBase)`
   display: flex;
   flex-direction: column;
   align-self: center;
+  position: relative;
+  width: 44vw;
+  min-width: 50px;
   -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=315, Color=#000000)"; /*IE 8*/
   -moz-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*FF 3.5+*/
   -webkit-box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /*Saf3-4, Chrome, iOS 4.0.2-4.2, Android 2.3+*/
   box-shadow: -1px -1px 11px -1px rgba(0, 0, 0, 0.6); /* FF3.5+, Opera 9+, Saf1+, Chrome, IE10 */
   filter: progid:DXImageTransform.Microsoft.Shadow(Strength=11, Direction=135, Color=#000000); /*IE 5.5-7*/
-`;
 
-export const FoodImageThumbnail = styled.div`
-  background-image: ${({ src }) => `url(${src})`};
-  background-size: contain;
-  width: 44vw;
-  min-width: 50px;
-  height: 120px;
   @media only screen and (min-width: 600px) {
     width: 180px;
-    height: 150px;
   }
 `;
 
-export const FoodNameThumbnail = styled.div`
-  font-size: 24px;
+export const FoodImageThumbnail = styled.div`
+  background-image: ${({ src }: { src: string }) => `url(${src})`};
+  background-size: contain;
+  height: 120px;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+`;
+
+export const FoodNameThumbnail = styled(TextFit)`
   font-weight: 500;
   margin-top: 5px;
+  width: 100%;
+  height: 30px;
+  padding: 4px;
 `;
 
 export const FoodPadding = styled.div`
@@ -217,12 +232,118 @@ export const FoodPadding = styled.div`
 `;
 
 // Image shower
-export const ImageShadow = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+
+export const FoodContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  @media only screen and (min-width: 600px) {
+    flex-direction: row-reverse;
+    height: 60vh;
+    min-height: 150px;
+  }
+`;
+
+export const FoodImage = styled.img`
+  width: 80vw;
+  object-fit: cover;
+  height: 100%;
+
+  @media only screen and (min-width: 600px) {
+    width: 70vh;
+    min-width: 200px;
+  }
+`;
+
+export const FoodTextContainer = styled.div`
+  height: 100%;
+  overflow: hidden;
+  width: 80vw;
+
+  @media only screen and (min-width: 600px) {
+    width: 18vw;
+    border: 0px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    padding: 20px;
+    min-width: 200px;
+    background-color: white;
+  }
+`;
+
+export const FoodName = styled(TextFit)`
+  font-weight: 700;
+  height: 30px;
+
+  @media only screen and (max-width: 600px) {
+    color: white;
+    margin-top: 20px;
+  }
+`;
+
+export const FoodDescription = styled.div`
+  margin-top: 15px;
+  font-size: 18px;
+  overflow-y: scroll;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  @media only screen and (max-width: 600px) {
+    color: white;
+  }
+
+  @media only screen and (min-width: 600px) and (max-width: 1024px) {
+    font-size: 16px;
+  }
+`;
+
+// Admin styles
+
+export const AddCategoryButton = styled(Button)`
+  width: 45%;
+  border-width: 0px;
+  height: 25vh;
+  max-height: 120px;
+  outline: none;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  font-size: 50px;
+
+  border: 2px solid grey;
+
+  @media only screen and (min-width: 600px) {
+    background-color: white;
+    font-size: 20px;
+    border-radius: 20px;
+    height: auto;
+    color: black;
+    width: auto;
+    margin-top: 10px;
+  }
+  &:hover {
+    background-color: #eaeaea;
+  }
+  @media only screen and (max-width: 600px) {
+    margin: 5px;
+  }
+`;
+
+export const DeleteContainer = styled.div`
+  width: 80vw;
+  height: 200px;
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  @media only screen and (min-width: 600px) {
+    width: 400px;
+  }
 `;

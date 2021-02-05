@@ -1,13 +1,9 @@
 import { createContext } from "react";
 
-/*
-type Theme = {
-  light: {
-    primary: string;
-    secondary: string;
-  };
-}
-*/
+export type Theme = {
+  primary: string;
+  secondary: string;
+};
 
 const theme = {
   light: {
