@@ -31,13 +31,12 @@ export const login = async ({
   const params = new URLSearchParams();
   params.append("username", user);
   params.append("password", password);
-  const res = await axios.post("/login", params);
+  const res = await axios.post("/login", params, { withCredentials: true });
   return Promise.resolve(res.status === 200);
 };
 
 export const getCategories = async (): Promise<Category[]> => {
   const categories = await axios.get("/categories");
-
   const parsedCategories = categories.data.map(
     (category: { name: string; image: string; _id?: string }) => {
       const newCategory = {
