@@ -9,7 +9,9 @@
 /coverage
 
 # production
-/build
+#/build
+/src
+/types
 
 # misc
 .DS_Store
@@ -24,3 +26,4 @@ yarn-error.log*
 ./cert/*
 
 .env
+
