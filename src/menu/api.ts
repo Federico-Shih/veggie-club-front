@@ -37,7 +37,7 @@ export const login = async ({
 
 export const getCategories = async (): Promise<Category[]> => {
   const categories = await axios.get("/categories");
-
+  console.log(categories)
   const parsedCategories = categories.data.map(
     (category: { name: string; image: string; _id?: string }) => {
       const newCategory = {
