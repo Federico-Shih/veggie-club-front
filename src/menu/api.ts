@@ -1,9 +1,7 @@
 import axios from "axios";
-import { v4 as uuid } from "uuid";
-import path from "path";
 import { Category, Day, Food } from "./types";
 
-const serverURL = "http://localhost:5000/";
+const serverURL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 axios.defaults.baseURL = serverURL;
 // axios.defaults.headers["Content-Type"] = ;

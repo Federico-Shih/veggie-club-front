@@ -31,7 +31,7 @@ export type Food = {
 };
 
 export const NullFood = {
-  days: [0, 1, 2, 3, 4, 5, 6 ],
+  days: [0, 1, 2, 3, 4, 5, 6],
   name: "",
   id: "-1",
   description: "",

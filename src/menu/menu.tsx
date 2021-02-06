@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {
   useState,
   useEffect,
@@ -371,7 +372,7 @@ function NormalMenu() {
                   </FoodPadding>
                 ))
               ) : (
-                <div>No hay comida para esta categoria en este día</div>
+                <div>No hay comida para esta categoría en este día</div>
               )}
             </>
           </LoaderWrapper>

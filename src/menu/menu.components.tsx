@@ -181,7 +181,7 @@ const ImageCropper = ({ image, setFinalImage }: ImageCropperProps) => {
         )}
       </CropperContainer>
       <ImageEditorTitle>
-        <TextFit style={{ height: "33%" }}>Editor de imagenes</TextFit>
+        <TextFit style={{ height: "33%" }}>Editor de imágenes</TextFit>
         <input
           accept="image/*"
           style={cropImage === "" ? { display: "none" } : {}}

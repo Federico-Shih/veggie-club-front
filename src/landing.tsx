@@ -75,7 +75,7 @@ function Landing(): ReactElement {
           <DecorationText>
             <DecorationTitle>MAYOR VARIEDAD</DecorationTitle>
             <DecorationDesc>
-              Amplia variacion de degustaciones para que puedas disfrutar los
+              Amplia variación de degustaciones para que puedas disfrutar los
               diversos sabores del oriente
             </DecorationDesc>
           </DecorationText>
@@ -107,7 +107,7 @@ function Landing(): ReactElement {
           <DecorationText>
             <DecorationTitle>MEJOR CALIDAD</DecorationTitle>
             <DecorationDesc>
-              Los ingredientes mas frescos y de mejor calidad para que puedas
+              Los ingredientes más frescos y de mejor calidad para que puedas
               disfrutar cada bocado
             </DecorationDesc>
           </DecorationText>
