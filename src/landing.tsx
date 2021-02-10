@@ -16,7 +16,7 @@ import ShortLogo from "./img/short-logo.png";
 import placeholder from "./img/placeholder.jpg";
 import { ThemeContext } from "./theme";
 import { DecorationImage, LinkButton } from "./landing.styles";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   Header,
   ImageBackground,
@@ -143,7 +143,10 @@ function Landing(): ReactElement {
       <DecorationContainer>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="300">
           <DecorationImage src={placeholder} alt="placeholder" />
-          <DecorationText data-aos={!mobile ? "" : "fade-up"}>
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>MAYOR VARIEDAD</DecorationTitle>
             <DecorationDesc>
               Amplia variación de degustaciones para que puedas disfrutar los
@@ -153,7 +156,10 @@ function Landing(): ReactElement {
         </Decoration>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="500">
           <DecorationImage src={placeholder} alt="placeholder" />
-          <DecorationText data-aos={!mobile ? "" : "fade-up"}>
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>100% VEGETARIANO</DecorationTitle>
             <DecorationDesc>
               Te demostramos mediante los platos que lo vegetariano es mas que
@@ -163,7 +169,10 @@ function Landing(): ReactElement {
         </Decoration>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="700">
           <DecorationImage src={placeholder} alt="placeholder" />
-          <DecorationText data-aos={!mobile ? "" : "fade-up"}>
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>MEJOR CALIDAD</DecorationTitle>
             <DecorationDesc>
               Los ingredientes más frescos y de mejor calidad para que puedas

@@ -537,7 +537,9 @@ export const FoodEditor = ({
           }}
           variant={mobile ? "outlined" : "filled"}
         />
-        <DaysChooser initialDays={food.days} setDays={setEditedDays} />
+        <div style={{ marginTop: "10px" }}>
+          <DaysChooser initialDays={food.days} setDays={setEditedDays} />
+        </div>
         <FormControlLabel
           label="visible"
           control={
@@ -641,12 +643,11 @@ type DaysChooserProps = {
   setDays: (temp: Day[]) => void;
 };
 
-const DayButton = styled(IconButton)`
-  background-color: ${({ selected: active }: { selected: boolean }) => {
-    return active ? "#eaeaea" : "none";
-  }};
-  width: 30px;
+const DayButton = styled(Button)`
+  width: 5px;
   height: 30px;
+  padding-left: 0px;
+  padding-right: 0px;
   font-size: 15px;
   margin: 2px;
 `;
@@ -687,7 +688,6 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
       [day]: !days[day],
     };
 
-    // WEIRD SHIT GOING ON HERE THE FUCK
     const dayList = [];
     const entries = Object.entries(newDays);
     for (let i = 0; i < entries.length; i += 1) {
@@ -704,7 +704,7 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
       {Object.entries(days).map(([day, active]) => {
         return (
           <DayButton
-            selected={active}
+            variant={active ? "contained" : "outlined"}
             onClick={() => {
               onClickHandler(parseInt(day));
             }}
