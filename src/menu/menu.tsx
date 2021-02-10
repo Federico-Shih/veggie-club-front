@@ -231,7 +231,6 @@ function NormalMenu() {
           categoryClickHandler(categoryList[0]);
         }
       }
-      setLoadingCategory(false);
     };
     try {
       asyncEffect();
@@ -245,6 +244,7 @@ function NormalMenu() {
         }
       }
     }
+    setLoadingCategory(false);
   }, []);
 
   const categoryQuery = useQuery().get("categoria");
@@ -289,7 +289,7 @@ function NormalMenu() {
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
       {!mobile || (mobile && !categoryQuery) ? (
-        <CategoriesContainer color={theme.primary}>
+        <CategoriesContainer color={theme.secondary}>
           <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
           {mobile ? (
             <hr
@@ -480,7 +480,6 @@ function AdminMenu() {
           categoryClickHandler(categoryList[0]);
         }
       }
-      setLoadingCategory(false);
     };
     try {
       asyncEffect();
@@ -489,6 +488,7 @@ function AdminMenu() {
         setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
       }
     }
+    setLoadingCategory(false);
   }, []);
 
   const handleAlertClose = (event?: React.SyntheticEvent, reason?: string) => {
@@ -514,17 +514,15 @@ function AdminMenu() {
         }
       } catch (err) {
         if (err.response) {
-          if (err.response.status === 409) {
-            setAlert({
-              message: "Categoría ya existe",
-              level: AlertLevel.error,
-            });
-          } else {
-            setAlert({
-              message: "ERROR DE SERVIDOR",
-              level: AlertLevel.error,
-            });
-          }
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        } else if (err.status === 409) {
+          setAlert({
+            message: "Categoría ya existe",
+            level: AlertLevel.error,
+          });
         }
         throw new Error();
       }
@@ -541,18 +539,15 @@ function AdminMenu() {
         }
       } catch (err) {
         if (err.response) {
-          const { status } = err.response;
-          if (status === 409) {
-            setAlert({
-              message: "Ya existe la categoría",
-              level: AlertLevel.error,
-            });
-          } else {
-            setAlert({
-              message: "ERROR DE SERVIDOR",
-              level: AlertLevel.error,
-            });
-          }
+          setAlert({
+            message: "ERROR DE SERVIDOR",
+            level: AlertLevel.error,
+          });
+        } else if (err.status === 409) {
+          setAlert({
+            message: "Ya existe la categoría",
+            level: AlertLevel.error,
+          });
         }
         throw new Error();
       }
@@ -565,7 +560,6 @@ function AdminMenu() {
             break;
           }
         }
-        console.log(modifiedCategory);
         setCategories(newCategoryList);
       } else {
         throw new CategoryNotSavedError();
@@ -591,12 +585,7 @@ function AdminMenu() {
       } catch (err) {
         if (err.response) {
           const { status } = err.response;
-          if (status === 409) {
-            setAlert({
-              message: "La comida ya existe",
-              level: AlertLevel.error,
-            });
-          } else if (status === 404) {
+          if (status === 404) {
             setAlert({
               message: "La categoría no existe",
               level: AlertLevel.error,
@@ -607,6 +596,11 @@ function AdminMenu() {
               level: AlertLevel.error,
             });
           }
+        } else if (err.status === 409) {
+          setAlert({
+            message: "La comida ya existe",
+            level: AlertLevel.error,
+          });
         }
         throw new Error();
       }
@@ -628,12 +622,7 @@ function AdminMenu() {
       } catch (err) {
         if (err.response) {
           const { status } = err.response;
-          if (status === 409) {
-            setAlert({
-              message: "La comida ya existe",
-              level: AlertLevel.error,
-            });
-          } else if (status === 404) {
+          if (status === 404) {
             setAlert({
               message: "La comida no existe",
               level: AlertLevel.error,
@@ -644,8 +633,14 @@ function AdminMenu() {
               level: AlertLevel.error,
             });
           }
-          throw new Error();
         }
+        if (err.status === 409) {
+          setAlert({
+            message: "La comida ya existe",
+            level: AlertLevel.error,
+          });
+        }
+        throw new Error();
       }
     }
   };
@@ -731,7 +726,7 @@ function AdminMenu() {
         <Route exact path="/menu/settings">
           <div style={{ display: "flex", flexDirection: "row" }}>
             {!mobile || (mobile && !categoryQuery) ? (
-              <CategoriesContainer color={theme.primary}>
+              <CategoriesContainer color={theme.secondary}>
                 <div style={{ marginTop: "10px" }}>CATEGORÍAS</div>
                 {mobile ? (
                   <hr
@@ -973,7 +968,7 @@ function Menu(): ReactElement {
           icon={faArrowLeft}
           size="2x"
           style={{ margin: "8px" }}
-          color="black"
+          color="white"
           onClick={() => {
             history.goBack();
           }}
@@ -987,7 +982,7 @@ function Menu(): ReactElement {
           icon={faBars}
           size="2x"
           style={{ margin: "8px" }}
-          color="black"
+          color="white"
           onClick={() => {
             setActiveDrawer(!activeDrawer);
           }}
@@ -1011,7 +1006,7 @@ function Menu(): ReactElement {
 
   return (
     <>
-      <Header color={theme.secondary}>
+      <Header color={theme.primary}>
         <MainIcon />
         <div
           style={{
@@ -1020,12 +1015,14 @@ function Menu(): ReactElement {
             transform: "translate(-50%, 0)",
             fontSize: mobile ? "20px" : "30px",
             fontWeight: 500,
+            color: "white",
           }}
         >
           {admin ? "ADMINISTRADOR" : "MENU"}
         </div>
         <SwitchButton
           icon={!admin ? faCog : faSignOutAlt}
+          color="white"
           onClick={() => {
             if (admin) {
               history.push("/menu");

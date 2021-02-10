@@ -249,7 +249,6 @@ export const CategoryEditor = ({
   );
 
   const [deleting, setDeleting] = useState(false);
-  const [editing, setEdit] = useState(false);
   const [editingImage, setEditingImage] = useState(false);
   const [saveState, setSaveState] = useState(SaveState.NotSaved);
 
@@ -285,7 +284,6 @@ export const CategoryEditor = ({
       });
     } catch (e) {
       setSaveState(SaveState.Error);
-      console.error(e);
       return;
     }
     setSaveState(SaveState.CategorySaved);
@@ -323,17 +321,6 @@ export const CategoryEditor = ({
           }}
           fullWidth
           placeholder="Titulo"
-          disabled={!editing}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <FontAwesomeIcon
-                  onClick={() => setEdit(!editing)}
-                  icon={faPencilAlt}
-                />
-              </InputAdornment>
-            ),
-          }}
           style={{
             backgroundColor: "white",
             marginTop: mobile ? "5px" : 0,
@@ -441,9 +428,7 @@ export const FoodEditor = ({
   onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
   const [editedFood, setEditedFood] = useState(food);
-  const [editingName, setEditingName] = useState(false);
   const [editingImage, setEditingImage] = useState(false);
-  const [editingDesc, setEditingDesc] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saveState, setSaveState] = useState(SaveState.NotSaved);
 
@@ -491,7 +476,6 @@ export const FoodEditor = ({
         visible: editedFood.visible,
       });
     } catch (e) {
-      console.error(e);
       setSaveState(SaveState.Error);
       return;
     }
@@ -533,17 +517,6 @@ export const FoodEditor = ({
           }}
           fullWidth
           placeholder="Titulo"
-          disabled={!editingName}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <FontAwesomeIcon
-                  onClick={() => setEditingName(!editingName)}
-                  icon={faPencilAlt}
-                />
-              </InputAdornment>
-            ),
-          }}
           style={{
             backgroundColor: "white",
             marginTop: mobile ? "5px" : 0,
@@ -558,17 +531,6 @@ export const FoodEditor = ({
           fullWidth
           multiline
           placeholder="Descripción"
-          disabled={!editingDesc}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <FontAwesomeIcon
-                  onClick={() => setEditingDesc(!editingDesc)}
-                  icon={faPencilAlt}
-                />
-              </InputAdornment>
-            ),
-          }}
           style={{
             backgroundColor: "white",
             marginTop: mobile ? "5px" : "20px",
@@ -680,13 +642,16 @@ type DaysChooserProps = {
 };
 
 const DayButton = styled(IconButton)`
-  background-color: ${({ selected: active }: { selected: boolean }) =>
-    active ? "#eaeaea" : "none"};
+  background-color: ${({ selected: active }: { selected: boolean }) => {
+    return active ? "#eaeaea" : "none";
+  }};
   width: 30px;
   height: 30px;
   font-size: 15px;
   margin: 2px;
 `;
+
+const dayMapper = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"];
 
 const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
   const [days, setDaysState] = useState({
@@ -721,6 +686,8 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
       ...days,
       [day]: !days[day],
     };
+
+    // WEIRD SHIT GOING ON HERE THE FUCK
     const dayList = [];
     const entries = Object.entries(newDays);
     for (let i = 0; i < entries.length; i += 1) {
@@ -733,28 +700,19 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
   };
 
   return (
-    <div style={{ display: "flex", width: "100%" }}>
-      <DayButton selected={days[0]} onClick={() => onClickHandler(0)}>
-        Do
-      </DayButton>
-      <DayButton selected={days[1]} onClick={() => onClickHandler(1)}>
-        Lu
-      </DayButton>
-      <DayButton selected={days[2]} onClick={() => onClickHandler(2)}>
-        Ma
-      </DayButton>
-      <DayButton selected={days[3]} onClick={() => onClickHandler(3)}>
-        Mi
-      </DayButton>
-      <DayButton selected={days[4]} onClick={() => onClickHandler(4)}>
-        Ju
-      </DayButton>
-      <DayButton selected={days[5]} onClick={() => onClickHandler(5)}>
-        Vi
-      </DayButton>
-      <DayButton selected={days[6]} onClick={() => onClickHandler(6)}>
-        Sa
-      </DayButton>
+    <div style={{ display: "flex", width: "100%", flexWrap: "wrap" }}>
+      {Object.entries(days).map(([day, active]) => {
+        return (
+          <DayButton
+            selected={active}
+            onClick={() => {
+              onClickHandler(parseInt(day));
+            }}
+          >
+            {dayMapper[parseInt(day)]}
+          </DayButton>
+        );
+      })}
     </div>
   );
 };
