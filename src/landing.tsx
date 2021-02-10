@@ -154,7 +154,7 @@ function Landing(): ReactElement {
             </DecorationDesc>
           </DecorationText>
         </Decoration>
-        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="500">
+        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="400">
           <DecorationImage src={placeholder} alt="placeholder" />
           <DecorationText
             data-aos={!mobile ? "" : "fade-up"}
@@ -167,7 +167,7 @@ function Landing(): ReactElement {
             </DecorationDesc>
           </DecorationText>
         </Decoration>
-        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="700">
+        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="500">
           <DecorationImage src={placeholder} alt="placeholder" />
           <DecorationText
             data-aos={!mobile ? "" : "fade-up"}
