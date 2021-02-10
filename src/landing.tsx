@@ -1,16 +1,22 @@
-import React, { ReactElement, useContext } from "react";
+import React, { ReactElement, useContext, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMapMarker,
   faPhone,
   faEnvelope,
+  faBars,
+  faBookOpen,
 } from "@fortawesome/free-solid-svg-icons";
 import { useWindowWidth } from "@react-hook/window-size";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 import Logo from "./img/logo.png";
 import ShortLogo from "./img/short-logo.png";
 import placeholder from "./img/placeholder.jpg";
 import { ThemeContext } from "./theme";
+import { DecorationImage, LinkButton } from "./landing.styles";
+import { Link } from "react-router-dom";
 import {
   Header,
   ImageBackground,
@@ -28,16 +34,59 @@ import {
   InfoContainer,
   SloganContainer,
 } from "./landing.styles";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from "@material-ui/core";
 
 function Landing(): ReactElement {
   const mobile = useWindowWidth() < 600;
   const theme = useContext(ThemeContext);
+  const [scrollPos, setScrollPos] = useState(0);
+  const [open, setDrawer] = useState(false);
+
+  const handleScroll = () => {
+    const position = window.pageYOffset;
+    setScrollPos(position);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    AOS.init();
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
     >
+      <Drawer
+        anchor="top"
+        open={open}
+        onClose={() => {
+          setDrawer(false);
+        }}
+      >
+        <List style={{ backgroundColor: theme.primary }}>
+          <div style={{ marginTop: "50px" }}></div>
+          <Link to="/menu">
+            <ListItem button>
+              <ListItemIcon>
+                <FontAwesomeIcon color="white" icon={faBookOpen} />
+              </ListItemIcon>
+              <ListItemText style={{ color: "white" }} primary="Menu" />
+            </ListItem>
+          </Link>
+        </List>
+      </Drawer>
       <Header color={theme.secondary}>
-        <ImageBackground src={placeholder}>
+        <ImageBackground active={scrollPos > 30} src={placeholder}>
           <LogoContainer>
             {!mobile && (
               <img
@@ -51,28 +100,53 @@ function Landing(): ReactElement {
               src={Logo}
               alt="veggie-club"
               style={{ objectFit: "contain" }}
-              width={mobile ? 200 : 170}
+              width={mobile ? 150 : 170}
               height={mobile ? 50 : "auto"}
             />
           </LogoContainer>
+          {mobile ? (
+            <FontAwesomeIcon
+              style={{
+                position: "absolute",
+                right: 0,
+                fontSize: "25px",
+                color: "white",
+                margin: "10px",
+              }}
+              onClick={() => {
+                setDrawer(!open);
+              }}
+              icon={faBars}
+            />
+          ) : (
+            <></>
+          )}
         </ImageBackground>
-        <ButtonContainer>
-          <StyledPageMark href="#NOSOTROS">NOSOTROS</StyledPageMark>
-          <StyledLink to="/menu">MENU</StyledLink>
-          <StyledPageMark href="#CONTACTO">CONTACTO</StyledPageMark>
-        </ButtonContainer>
+        {!mobile ? (
+          <ButtonContainer>
+            <StyledPageMark href="#NOSOTROS">NOSOTROS</StyledPageMark>
+            <StyledLink to="/menu">MENU</StyledLink>
+            <StyledPageMark href="#CONTACTO">CONTACTO</StyledPageMark>
+          </ButtonContainer>
+        ) : (
+          <></>
+        )}
       </Header>
-      <SloganContainer id="NOSOTROS">SE TRATA DE COMER BIEN</SloganContainer>
+      <SloganContainer id="NOSOTROS">
+        <div>SE TRATA DE COMER BIEN</div>
+        {mobile ? (
+          <LinkButton to="/menu">Conocé nuestro menu!</LinkButton>
+        ) : (
+          <></>
+        )}
+      </SloganContainer>
       <DecorationContainer>
-        <Decoration color={theme.secondary}>
-          <img
-            src={placeholder}
-            alt="placeholder"
-            style={{ objectFit: "cover", borderRadius: "50%" }}
-            width={mobile ? 100 : 250}
-            height={mobile ? 100 : 250}
-          />
-          <DecorationText>
+        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="300">
+          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>MAYOR VARIEDAD</DecorationTitle>
             <DecorationDesc>
               Amplia variación de degustaciones para que puedas disfrutar los
@@ -80,15 +154,12 @@ function Landing(): ReactElement {
             </DecorationDesc>
           </DecorationText>
         </Decoration>
-        <Decoration color={theme.primary}>
-          <img
-            src={placeholder}
-            alt="placeholder"
-            style={{ objectFit: "cover", borderRadius: "50%" }}
-            width={mobile ? 100 : 250}
-            height={mobile ? 100 : 250}
-          />
-          <DecorationText>
+        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="500">
+          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>100% VEGETARIANO</DecorationTitle>
             <DecorationDesc>
               Te demostramos mediante los platos que lo vegetariano es mas que
@@ -96,15 +167,12 @@ function Landing(): ReactElement {
             </DecorationDesc>
           </DecorationText>
         </Decoration>
-        <Decoration color={theme.secondary}>
-          <img
-            src={placeholder}
-            alt="placeholder"
-            style={{ objectFit: "cover", borderRadius: "50%" }}
-            width={mobile ? 100 : 250}
-            height={mobile ? 100 : 250}
-          />
-          <DecorationText>
+        <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="700">
+          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationText
+            data-aos={!mobile ? "" : "fade-up"}
+            data-aos-offset="300"
+          >
             <DecorationTitle>MEJOR CALIDAD</DecorationTitle>
             <DecorationDesc>
               Los ingredientes más frescos y de mejor calidad para que puedas

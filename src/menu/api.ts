@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Category, Day, Food } from "./types";
+import { CustomError } from "./errors";
 
 const serverURL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
@@ -31,13 +32,12 @@ export const login = async ({
   const params = new URLSearchParams();
   params.append("username", user);
   params.append("password", password);
-  const res = await axios.post("/login", params);
+  const res = await axios.post("/login", params, { withCredentials: true });
   return Promise.resolve(res.status === 200);
 };
 
 export const getCategories = async (): Promise<Category[]> => {
   const categories = await axios.get("/categories");
-  console.log(categories)
   const parsedCategories = categories.data.map(
     (category: { name: string; image: string; _id?: string }) => {
       const newCategory = {
@@ -100,6 +100,10 @@ export const createCategory = async (
 
   const res = await axios.post("/category/add", data);
 
+  if (res.data?.code === 409) {
+    throw new CustomError("Categoría duplicada", 409);
+  }
+
   const newCategory = {
     id: res.data._id,
     name: res.data.name,
@@ -128,6 +132,10 @@ export const modifyCategory = async ({
   }
   data.append("id", id);
   const res = await axios.patch("/category/edit", data);
+  if (res.data?.code === 409) {
+    throw new CustomError("Categoría duplicada", 409);
+  }
+
   const editedCategory = {
     image: padImage(res.data.image, true),
     id: res.data._id,
@@ -166,6 +174,11 @@ export const createFood = async (
   data.append("visible", JSON.stringify(visible));
 
   const res = await axios.post("/food/add", data);
+
+  if (res.data?.code === 409) {
+    throw new CustomError("Comida duplicada", 409);
+  }
+
   const newFood = {
     name: res.data.name,
     days: res.data.days,
@@ -201,6 +214,11 @@ export const modifyFood = async (
   data.append("id", food.id);
 
   const res = await axios.patch("/food/edit", data);
+
+  if (res.data?.code === 409) {
+    throw new CustomError("Comida duplicada", 409);
+  }
+
   if (res.data) {
     const { name, _id, image, description, visible, days } = res.data;
     const modifiedFood = {

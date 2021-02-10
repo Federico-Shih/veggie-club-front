@@ -7,8 +7,8 @@ export type Theme = {
 
 const theme = {
   light: {
-    primary: "#FBA06E",
-    secondary: "#CDEAC0",
+    primary: "#8B1E3F",
+    secondary: "#DB4C40",
   },
 };
 

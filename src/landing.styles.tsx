@@ -1,17 +1,65 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { Link } from "react-router-dom";
+import placeholder from "./img/placeholder.jpg";
 
 export const Header = styled.div`
-  width: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  z-index: 2000;
   @media only screen and (max-width: 600px) {
-    height: 130px;
-    background-color: ${({ color }) => color};
+    background-color: transparent;
     justify-content: flex-end;
-    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.1);
   }
+
+  @media only screen and (min-width: 600px) {
+    position: relative;
+    width: 100%;
+  }
+`;
+
+const activeImageBackground = css`
+  @media only screen and (max-width: 600px) {
+    height: 50px;
+    box-shadow: inset 0px 4px 21px 300px rgba(139, 30, 63, 1);
+  }
+
+  @media only screen and (min-width: 600px) {
+    filter: brightness(50%);
+  }
+`;
+
+type ImageProps = {
+  src: string;
+  active: boolean;
+};
+
+export const ImageBackground = styled.div`
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  ${({ active }: ImageProps) => (active ? activeImageBackground : null)}
+
+  @media only screen and (min-width: 600px) {
+    width: 100%;
+    height: calc(100vh - 150px);
+    display: flex;
+    background-image: ${({ src }: { src: string }) => `url(${src})`};
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    box-shadow: none;
+  }
+
+  transition: 0.5s;
 `;
 
 export const Footer = styled.div`
@@ -42,20 +90,6 @@ export const LogoContainer = styled.div`
   }
 `;
 
-export const ImageBackground = styled.div`
-  @media only screen and (min-width: 600px) {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    background-image: ${({ src }: { src: string }) => `url(${src})`};
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-  }
-`;
-
 export const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-evenly;
@@ -65,15 +99,28 @@ export const ButtonContainer = styled.div`
 
 export const SloganContainer = styled.div`
   font-weight: bold;
-  font-size: 20px;
-  margin-top: 20px;
+  @media only screen and (max-width: 600px) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 25px;
+    padding: 20px;
+    text-align: center;
+    height: 90vh;
+    width: 100%;
+    background-position: center center;
+    background-image: url(${placeholder});
+    box-shadow: inset 0px 4px 21px 300px rgba(0, 0, 0, 0.6);
+  }
   @media only screen and (min-width: 600px) {
     font-size: 40px;
     margin-top: 60px;
   }
 `;
 
-const LinkStyle = `
+const LinkStyle = css`
   font-size: 16px;
   padding: 5px 15px 20px 15px;
   background-color: transparent;
@@ -91,7 +138,21 @@ const LinkStyle = `
     border-style: solid;
     border-width: 0 0 1px 0;
     border-color: black;
-}
+  }
+`;
+
+export const LinkButton = styled(Link)`
+  font-size: 20px;
+  text-decoration: none;
+  top: 0;
+  padding: 10px 20px 10px 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  background-color: rgba(219, 76, 64);
+  &:visited {
+    color: white;
+  }
+  transition: 0.2s;
 `;
 
 export const StyledLink = styled(Link)`
@@ -114,37 +175,47 @@ export const InfoContainer = styled.div`
 
 export const DecorationContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   justify-content: flex-start;
+  flex-wrap: wrap;
   align-items: center;
-  padding-top: 10px;
   @media only screen and (min-width: 600px) {
-    flex-direction: row;
-    width: 60vw;
-    padding-top: 30px;
-    justify-content: space-evenly;
+    padding-top: 90px;
   }
 `;
 
 export const Decoration = styled.div`
+  position: relative;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   width: 100%;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  background-color: ${({ color }) => {
-    return color;
-  }};
+  height: 80vh;
+
   @media only screen and (min-width: 600px) {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 33%;
     flex-direction: column;
     background-color: transparent;
     align-items: center;
     margin: none;
   }
+`;
+
+export const DecorationImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  filter: brightness(60%);
+  object-fit: cover;
 `;
 
 export const DecorationTitle = styled.div`
@@ -173,6 +244,13 @@ export const DecorationText = styled.div`
   flex-direction: column;
   justify-content: center;
   padding-left: 5px;
+  color: white;
+
+  @media only screen and (max-width: 600px) {
+    width: 70%;
+    height: 200px;
+    background-color: rgba(219, 76, 64, 0.7);
+  }
   @media only screen and (min-width: 600px) {
     align-items: center;
   }
