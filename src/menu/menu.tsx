@@ -33,7 +33,6 @@ import {
   Snackbar,
 } from "@material-ui/core";
 import { Action, Fab } from "react-tiny-fab";
-import { Alert } from "@material-ui/lab";
 
 import Smologo from "../img/short-logo.png";
 import Logo from "../img/logo.png";
@@ -78,11 +77,12 @@ import {
   NullCategory,
   Category,
   AlertLevel,
-} from "./types";
+} from "../types";
 import { CategoryEditor, FoodEditor } from "./menu.components";
 import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
-import { Food, Day } from "./types";
+import { Food, Day } from "../types";
 import { deleteFood } from "./api";
+import { AlertContext } from "../events";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -103,6 +103,15 @@ type DaySelectorProps = {
   setSelectedDay: (day: number) => void;
 };
 
+const dayMapper = {
+  1: "Lunes",
+  2: "Mártes",
+  3: "Miércoles",
+  4: "Jueves",
+  5: "Viernes",
+  6: "Sábado",
+};
+
 const DaySelector = ({ selectedDay, setSelectedDay }: DaySelectorProps) => {
   const mobile = useWindowWidth() < 600;
 
@@ -114,60 +123,18 @@ const DaySelector = ({ selectedDay, setSelectedDay }: DaySelectorProps) => {
       alwaysShowTitle
       style={{ position: "fixed", right: 0, bottom: 0 }}
     >
-      <Action
-        style={selectedDay === 1 ? { color: "black" } : {}}
-        onClick={() => {
-          setSelectedDay(1);
-        }}
-        text="Lunes"
-      >
-        Lu
-      </Action>
-      <Action
-        text="Mártes"
-        onClick={() => {
-          setSelectedDay(2);
-        }}
-        style={selectedDay === 2 ? { color: "black" } : {}}
-      >
-        Ma
-      </Action>
-      <Action
-        text="Miércoles"
-        onClick={() => {
-          setSelectedDay(3);
-        }}
-        style={selectedDay === 3 ? { color: "black" } : {}}
-      >
-        Mi
-      </Action>
-      <Action
-        text="Jueves"
-        onClick={() => {
-          setSelectedDay(4);
-        }}
-        style={selectedDay === 4 ? { color: "black" } : {}}
-      >
-        Ju
-      </Action>
-      <Action
-        text="Viernes"
-        onClick={() => {
-          setSelectedDay(5);
-        }}
-        style={selectedDay === 5 ? { color: "black" } : {}}
-      >
-        Vi
-      </Action>
-      <Action
-        text="Sábado"
-        onClick={() => {
-          setSelectedDay(6);
-        }}
-        style={selectedDay === 6 ? { color: "black" } : {}}
-      >
-        Sa
-      </Action>
+      {Object.entries(dayMapper).map(([key, day]) => (
+        <Action
+          style={selectedDay === parseInt(key, 10) ? { color: "black" } : {}}
+          onClick={() => {
+            setSelectedDay(parseInt(key, 10));
+          }}
+          text={day}
+          key={key}
+        >
+          {day.slice(0, 2)}
+        </Action>
+      ))}
     </Fab>
   );
 };
@@ -183,13 +150,18 @@ function NormalMenu() {
   const [categories, setCategories] = useState(NullCategoryArray);
   const [foods, setFoods] = useState(NullFoodArray);
 
-  const [alertMessage, setAlert] = useState({
-    message: "",
-    level: AlertLevel.info,
-  });
+  const { setAlert } = useContext(AlertContext);
+
+  const categoryQuery = useQuery().get("categoria");
 
   const history = useHistory();
   const { pathname: path } = useLocation();
+
+  useEffect(() => {
+    if (!categoryQuery && mobile) {
+      setShowedFood(NullFood);
+    }
+  }, [categoryQuery]);
 
   const categoryClickHandler = async (category: Category, day?: Day) => {
     setLoadingFoods(true);
@@ -223,17 +195,17 @@ function NormalMenu() {
   // Initial Loading
   useEffect(() => {
     setLoadingCategory(true);
-    const asyncEffect = async () => {
+    const getCategoriesCall = async () => {
       const categoryList = await getCategories();
       setCategories(categoryList);
       if (categoryList.length !== 0) {
-        if (!mobile) {
+        if (!mobile || categoryQuery) {
           categoryClickHandler(categoryList[0]);
         }
       }
     };
     try {
-      asyncEffect();
+      getCategoriesCall();
     } catch (err) {
       if (err.response) {
         if (err.response) {
@@ -247,39 +219,34 @@ function NormalMenu() {
     setLoadingCategory(false);
   }, []);
 
-  const categoryQuery = useQuery().get("categoria");
-
   const setSelectedDay = async (day: Day) => {
     setDay(day);
     setLoadingFoods(true);
-    try {
-      const foodCall = await getFoodsByDayAndCategory(selectedCategory.id, day);
-      setFoods(foodCall);
-    } catch (err) {
-      if (err.response) {
-        const { status } = err.response;
-        if (status === 404) {
-          setAlert({
-            message: "No existe la categoria",
-            level: AlertLevel.error,
-          });
-        } else {
-          setAlert({
-            message: "ERROR DE SERVIDOR",
-            level: AlertLevel.error,
-          });
+    if (!mobile) {
+      try {
+        const foodCall = await getFoodsByDayAndCategory(
+          selectedCategory.id,
+          day
+        );
+        setFoods(foodCall);
+      } catch (err) {
+        if (err.response) {
+          const { status } = err.response;
+          if (status === 404) {
+            setAlert({
+              message: "No existe la categoria",
+              level: AlertLevel.error,
+            });
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
         }
       }
     }
     setLoadingFoods(false);
-  };
-
-  const handleAlertClose = (event?: React.SyntheticEvent, reason?: string) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setAlert({ message: "", level: AlertLevel.info });
   };
 
   const mobile = useWindowWidth() < 600;
@@ -362,12 +329,7 @@ function NormalMenu() {
                       }}
                     >
                       <FoodImageThumbnail src={image} />
-                      <FoodNameThumbnail
-                        mode="single"
-                        forceSingleModeWidth={false}
-                      >
-                        {name}
-                      </FoodNameThumbnail>
+                      <FoodNameThumbnail>{name}</FoodNameThumbnail>
                     </FoodThumbnail>
                   </FoodPadding>
                 ))
@@ -395,15 +357,6 @@ function NormalMenu() {
         </FoodContainer>
       </Backdrop>
       <DaySelector selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
-      <Snackbar
-        open={alertMessage.message !== ""}
-        autoHideDuration={2000}
-        onClose={handleAlertClose}
-      >
-        <Alert onClose={handleAlertClose} severity={alertMessage.level}>
-          {alertMessage.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 }
@@ -422,10 +375,7 @@ function AdminMenu() {
   const [categories, setCategories] = useState([] as Category[]);
   const [foods, setFoods] = useState(NullFoodArray);
 
-  const [alertMessage, setAlert] = useState({
-    message: "",
-    level: AlertLevel.info,
-  });
+  const { setAlert } = useContext(AlertContext);
 
   // Category and Food's editor
   const [
@@ -439,6 +389,8 @@ function AdminMenu() {
     { show: foodEditorShown, food: editedFood },
     setShowedFood,
   ] = useFoodEditor({ show: false });
+
+  const categoryQuery = useQuery().get("categoria");
 
   const categoryClickHandler = async (category: Category) => {
     setLoadingFoods(true);
@@ -472,17 +424,17 @@ function AdminMenu() {
   // Initial Loading
   useEffect(() => {
     setLoadingCategory(true);
-    const asyncEffect = async () => {
+    const getCategoriesCall = async () => {
       const categoryList = await getCategories();
       setCategories(categoryList);
       if (categoryList.length !== 0) {
-        if (!mobile) {
+        if (!mobile || categoryQuery) {
           categoryClickHandler(categoryList[0]);
         }
       }
     };
     try {
-      asyncEffect();
+      getCategoriesCall();
     } catch (err) {
       if (err.response) {
         setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
@@ -490,14 +442,6 @@ function AdminMenu() {
     }
     setLoadingCategory(false);
   }, []);
-
-  const handleAlertClose = (event?: React.SyntheticEvent, reason?: string) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setAlert({ message: "", level: AlertLevel.info });
-  };
 
   // Function passed to category editor component
   const onCategorySave = async (savedCategory: Category) => {
@@ -514,10 +458,18 @@ function AdminMenu() {
         }
       } catch (err) {
         if (err.response) {
-          setAlert({
-            message: "ERROR DE SERVIDOR",
-            level: AlertLevel.error,
-          });
+          if (err.response.status === 401) {
+            setAlert({
+              message: "Se expiró la sesión",
+              level: AlertLevel.error,
+            });
+            history.push("/menu");
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
         } else if (err.status === 409) {
           setAlert({
             message: "Categoría ya existe",
@@ -539,10 +491,18 @@ function AdminMenu() {
         }
       } catch (err) {
         if (err.response) {
-          setAlert({
-            message: "ERROR DE SERVIDOR",
-            level: AlertLevel.error,
-          });
+          if (err.response.status === 401) {
+            setAlert({
+              message: "Se expiró la sesión",
+              level: AlertLevel.error,
+            });
+            history.push("/menu");
+          } else {
+            setAlert({
+              message: "ERROR DE SERVIDOR",
+              level: AlertLevel.error,
+            });
+          }
         } else if (err.status === 409) {
           setAlert({
             message: "Ya existe la categoría",
@@ -585,7 +545,13 @@ function AdminMenu() {
       } catch (err) {
         if (err.response) {
           const { status } = err.response;
-          if (status === 404) {
+          if (status === 401) {
+            setAlert({
+              message: "Se expiró la sesión",
+              level: AlertLevel.error,
+            });
+            history.push("/menu");
+          } else if (status === 404) {
             setAlert({
               message: "La categoría no existe",
               level: AlertLevel.error,
@@ -622,6 +588,13 @@ function AdminMenu() {
       } catch (err) {
         if (err.response) {
           const { status } = err.response;
+          if (status === 401) {
+            setAlert({
+              message: "Se expiró la sesión",
+              level: AlertLevel.error,
+            });
+            history.push("/menu");
+          }
           if (status === 404) {
             setAlert({
               message: "La comida no existe",
@@ -648,28 +621,83 @@ function AdminMenu() {
   const onFoodDelete = async (foodId: string) => {
     try {
       await deleteFood(foodId);
+      const newFoods = foods.filter((food) => food.id !== foodId);
+      setFoods(newFoods);
+      setShowedFood({ show: false });
     } catch (err) {
       if (err.response) {
         const { status } = err.response;
-        if (status === 404) {
+        if (status === 401) {
+          setAlert({
+            message: "Se expiró la sesión",
+            level: AlertLevel.error,
+          });
+          history.push("/menu");
+        } else if (status === 404) {
           setAlert({ message: "No existe la comida", level: AlertLevel.error });
         } else {
           setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
         }
       }
     }
-    const newFoods = foods.filter((food) => food.id !== foodId);
-    setFoods(newFoods);
-    setShowedFood({ show: false });
   };
 
   const onCategoryDelete = async (categoryId: string) => {
     try {
       await deleteCategory(categoryId);
+      const newCategories = categories.filter(
+        (category) => category.id !== categoryId
+      );
+
+      setCategories(newCategories);
+
+      if (newCategories.length !== 0 && !mobile) {
+        setCategory(newCategories[0]);
+        setLoadingFoods(true);
+        history.push(`${path}?categoria=${newCategories[0].name}`);
+        try {
+          const foodCall = await getFoodsByDayAndCategory(newCategories[0].id);
+          setFoods(foodCall);
+        } catch (err) {
+          if (err.response) {
+            const { status } = err.response;
+            if (status === 401) {
+              setAlert({
+                message: "Se expiró la sesión",
+                level: AlertLevel.error,
+              });
+              history.push("/menu");
+            } else if (status === 404) {
+              setAlert({
+                message: "No existe la categoria",
+                level: AlertLevel.error,
+              });
+            } else {
+              setAlert({
+                message: "ERROR DE SERVIDOR",
+                level: AlertLevel.error,
+              });
+            }
+          }
+        }
+        setLoadingFoods(false);
+      } else if (mobile) {
+        setFoods(NullFoodArray);
+      } else {
+        setFoods(NullFoodArray);
+        history.push(`${path}`);
+      }
+      setCategoryEditor({ show: false });
     } catch (err) {
       if (err.response) {
         const { status } = err.response;
-        if (status === 404) {
+        if (status === 401) {
+          setAlert({
+            message: "Se expiró la sesión",
+            level: AlertLevel.error,
+          });
+          history.push("/menu");
+        } else if (status === 404) {
           setAlert({
             message: "No existe la categoría",
             level: AlertLevel.error,
@@ -679,45 +707,8 @@ function AdminMenu() {
         }
       }
     }
-    const newCategories = categories.filter(
-      (category) => category.id !== categoryId
-    );
-    setCategories(newCategories);
-
-    if (newCategories.length !== 0 && !mobile) {
-      setCategory(newCategories[0]);
-      setLoadingFoods(true);
-      history.push(`${path}?categoria=${newCategories[0].name}`);
-      try {
-        const foodCall = await getFoodsByDayAndCategory(newCategories[0].id);
-        setFoods(foodCall);
-      } catch (err) {
-        if (err.response) {
-          const { status } = err.response;
-          if (status === 404) {
-            setAlert({
-              message: "No existe la categoria",
-              level: AlertLevel.error,
-            });
-          } else {
-            setAlert({
-              message: "ERROR DE SERVIDOR",
-              level: AlertLevel.error,
-            });
-          }
-        }
-      }
-      setLoadingFoods(false);
-    } else if (mobile) {
-      setFoods(NullFoodArray);
-    } else {
-      setFoods(NullFoodArray);
-      history.push(`${path}`);
-    }
-    setCategoryEditor({ show: false });
   };
 
-  const categoryQuery = useQuery().get("categoria");
   const theme = useContext(ThemeContext);
 
   return (
@@ -816,12 +807,7 @@ function AdminMenu() {
                               }}
                             >
                               <FoodImageThumbnail src={image} />
-                              <FoodNameThumbnail
-                                mode="single"
-                                forceSingleModeWidth={false}
-                              >
-                                {name}
-                              </FoodNameThumbnail>
+                              <FoodNameThumbnail>{name}</FoodNameThumbnail>
                             </FoodThumbnail>
                           </FoodPadding>
                         )
@@ -837,7 +823,7 @@ function AdminMenu() {
                           border: "4px solid black",
                         }}
                         onClick={() => {
-                          setShowedFood({ show: true });
+                          setShowedFood({ show: true, food: NullFood });
                         }}
                       >
                         +
@@ -850,28 +836,36 @@ function AdminMenu() {
             <Backdrop
               open={categoryEditorShown}
               onClick={() => {
-                setCategoryEditor({ show: false });
+                setCategoryEditor({ show: false, category: NullCategory });
               }}
               style={{ zIndex: 1000 }}
             >
-              <CategoryEditor
-                onDelete={onCategoryDelete}
-                onSave={onCategorySave}
-                category={editedCategory as Category}
-              />
+              {categoryEditorShown ? (
+                <CategoryEditor
+                  onDelete={onCategoryDelete}
+                  onSave={onCategorySave}
+                  category={editedCategory as Category}
+                />
+              ) : (
+                <></>
+              )}
             </Backdrop>
             <Backdrop
               open={foodEditorShown}
               onClick={() => {
-                setShowedFood({ show: false });
+                setShowedFood({ show: false, food: NullFood });
               }}
               style={{ zIndex: 1000 }}
             >
-              <FoodEditor
-                food={editedFood as Food}
-                onSave={onFoodSave}
-                onDelete={onFoodDelete}
-              />
+              {foodEditorShown ? (
+                <FoodEditor
+                  food={editedFood as Food}
+                  onSave={onFoodSave}
+                  onDelete={onFoodDelete}
+                />
+              ) : (
+                <></>
+              )}
             </Backdrop>
           </div>
         </Route>
@@ -893,15 +887,6 @@ function AdminMenu() {
           </List>
         </Link>
       </Drawer>
-      <Snackbar
-        open={alertMessage.message !== ""}
-        autoHideDuration={2000}
-        onClose={handleAlertClose}
-      >
-        <Alert onClose={handleAlertClose} severity={alertMessage.level}>
-          {alertMessage.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
@@ -910,6 +895,7 @@ function AdminMenu() {
 function Menu(): ReactElement {
   // Activates log in popup
   const [loggingIn, setLog] = useState(false);
+  const [loginError, setError] = useState(false);
   // Login info
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
@@ -917,12 +903,6 @@ function Menu(): ReactElement {
   const [activeDrawer, setActiveDrawer] = useState(false);
   const history = useHistory();
   const { pathname: path } = useLocation();
-
-  // useEffect(() => {
-  //   if (path === "/menu") {
-  //     setAdmin(false);
-  //   }
-  // }, [path]);
 
   const setLogin = (status: boolean) => {
     if (!status) {
@@ -940,20 +920,26 @@ function Menu(): ReactElement {
     };
   }
 
-  const validate = () => {
+  const validate = async () => {
     if (
       username.trim() !== "" &&
       password.trim() !== "" &&
       password.trim().length >= 8
     ) {
-      login({ user: username, password }).then((result) => {
+      try {
+        const result = await login({ user: username, password });
         if (result) {
           history.push(`${path}/settings`);
           setLogin(false);
           setUser("");
           setPass("");
         }
-      });
+      } catch (err) {
+        if (err.status === 401) {
+          setError(true);
+          return;
+        }
+      }
     }
   };
 
@@ -1048,6 +1034,7 @@ function Menu(): ReactElement {
         open={loggingIn}
         onClick={() => {
           setLogin(false);
+          setError(false);
         }}
         style={{ zIndex: 1001 }}
       >
@@ -1066,6 +1053,7 @@ function Menu(): ReactElement {
             name="username"
             onChange={handleChange(setUser)}
             value={username}
+            error={loginError}
             variant="outlined"
             label="Nombre de usuario"
             size="small"
@@ -1076,6 +1064,7 @@ function Menu(): ReactElement {
             type="password"
             name="password"
             onChange={handleChange(setPass)}
+            error={loginError}
             variant="outlined"
             label="Contraseña"
             value={password}

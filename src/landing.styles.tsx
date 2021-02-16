@@ -125,6 +125,9 @@ const LinkStyle = css`
   padding: 5px 15px 20px 15px;
   background-color: transparent;
   text-decoration: none;
+  color: black;
+  background-color: transparent;
+
   &:visited {
     color: #3d3d3d;
   }

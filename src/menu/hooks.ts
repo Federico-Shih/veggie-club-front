@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Category, NullCategory, Food, NullFood } from "./types";
+import { Category, NullCategory, Food, NullFood } from "../types";
 
 interface EditCategoryDto {
   show: boolean;
