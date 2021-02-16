@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Category, Day, Food } from "./types";
-import { CustomError } from "./errors";
+import { Category, Day, Food } from "../types";
+import { CustomError } from './errors';
 
 const serverURL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
@@ -33,6 +33,9 @@ export const login = async ({
   params.append("username", user);
   params.append("password", password);
   const res = await axios.post("/login", params, { withCredentials: true });
+  if (res.data.code) {
+    throw new CustomError("Error ingresando", 401);
+  }
   return Promise.resolve(res.status === 200);
 };
 

@@ -12,7 +12,7 @@ import {
   FoodImage,
   FoodTextContainer,
 } from "./menu.styles";
-import { Category, Day, Food, NullFood } from "./types";
+import { Category, Day, Food } from "../types";
 import noImage from "../img/no-image.jpg";
 import {
   Backdrop,
@@ -20,8 +20,6 @@ import {
   Checkbox,
   Dialog,
   FormControlLabel,
-  IconButton,
-  InputAdornment,
   TextField,
 } from "@material-ui/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -50,7 +48,6 @@ const ImageEditorContainer = styled.div`
   padding: 20px;
   @media only screen and (min-width: 600px) {
     width: 40vw;
-    height: 700px;
   }
   display: flex;
   flex-direction: column-reverse;
@@ -113,7 +110,6 @@ const ImageCropper = ({ image, setFinalImage }: ImageCropperProps) => {
       y,
     } = (cropFinalImage as unknown) as ReactCrop.Crop;
     const image = (imgRef?.current as unknown) as HTMLImageElement;
-
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -242,11 +238,8 @@ export const CategoryEditor = ({
   onSave: (temp: Category) => Promise<void>;
   onDelete: (temp: string) => Promise<void>;
 }): ReactElement => {
-  const noCategory = Object.keys(category).length === 0;
-  const [title, setTitle] = useState(noCategory ? "" : category.name);
-  const [imageToEdit, setImageToEdit] = useState(
-    noCategory ? "" : category.image
-  );
+  const [title, setTitle] = useState(category.name);
+  const [imageToEdit, setImageToEdit] = useState(category.image);
 
   const [deleting, setDeleting] = useState(false);
   const [editingImage, setEditingImage] = useState(false);
@@ -256,6 +249,7 @@ export const CategoryEditor = ({
 
   // When props are updated
   useEffect(() => {
+    const noCategory = Object.keys(category).length === 0;
     setTitle(noCategory ? "" : category.name);
     setImageToEdit(noCategory ? "" : category.image);
   }, [category]);
@@ -377,7 +371,11 @@ export const CategoryEditor = ({
         open={editingImage}
         style={{ zIndex: 1002 }}
       >
-        <ImageCropper image={imageToEdit} setFinalImage={setImageToEdit} />
+        {editingImage ? (
+          <ImageCropper image={imageToEdit} setFinalImage={setImageToEdit} />
+        ) : (
+          <></>
+        )}
       </Backdrop>
       <Dialog
         onClick={(e) => {
@@ -419,7 +417,7 @@ export const CategoryEditor = ({
 };
 
 export const FoodEditor = ({
-  food = NullFood,
+  food,
   onSave,
   onDelete,
 }: {
@@ -491,6 +489,7 @@ export const FoodEditor = ({
         borderBottomLeftRadius: "20px",
         backgroundColor: mobile ? "white" : "",
         padding: mobile ? "10px" : 0,
+        height: "auto",
       }}
     >
       <FoodImage
@@ -555,7 +554,10 @@ export const FoodEditor = ({
           style={
             mobile
               ? {}
-              : { position: "absolute", bottom: 0, left: 0, margin: 20 }
+              : {
+                  display: "flex",
+                  flexWrap: "wrap",
+                }
           }
         >
           <LoaderWrapper
@@ -594,10 +596,14 @@ export const FoodEditor = ({
         open={editingImage}
         style={{ zIndex: 1002 }}
       >
-        <ImageCropper
-          image={editedFood?.image ?? ""}
-          setFinalImage={setImageToEdit}
-        />
+        {editingImage ? (
+          <ImageCropper
+            image={editedFood?.image ?? ""}
+            setFinalImage={setImageToEdit}
+          />
+        ) : (
+          <></>
+        )}
       </Backdrop>
       <Dialog
         onClose={() => {
@@ -702,16 +708,21 @@ const DaysChooser = ({ initialDays, setDays }: DaysChooserProps) => {
   return (
     <div style={{ display: "flex", width: "100%", flexWrap: "wrap" }}>
       {Object.entries(days).map(([day, active]) => {
-        return (
-          <DayButton
-            variant={active ? "contained" : "outlined"}
-            onClick={() => {
-              onClickHandler(parseInt(day));
-            }}
-          >
-            {dayMapper[parseInt(day)]}
-          </DayButton>
-        );
+        if (day === "0") {
+          return <></>;
+        } else {
+          return (
+            <DayButton
+              key={day}
+              variant={!active ? "contained" : "outlined"}
+              onClick={() => {
+                onClickHandler(parseInt(day));
+              }}
+            >
+              {dayMapper[parseInt(day)]}
+            </DayButton>
+          );
+        }
       })}
     </div>
   );

@@ -215,12 +215,19 @@ export const FoodImageThumbnail = styled.div`
   background-size: cover;
 `;
 
-export const FoodNameThumbnail = styled(TextFit)`
+export const FoodNameThumbnail = styled.div`
   font-weight: 500;
   margin-top: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 18px;
   width: 100%;
-  height: 30px;
   padding: 4px;
+
+  @media only screen and (min-width: 600px) {
+    font-size: 18px;
+  }
 `;
 
 export const FoodPadding = styled.div`
@@ -241,8 +248,8 @@ export const FoodContainer = styled.div`
   align-items: center;
   @media only screen and (min-width: 600px) {
     flex-direction: row-reverse;
-    height: 60vh;
     min-height: 150px;
+    background-color: white;
   }
 `;
 
@@ -261,7 +268,7 @@ export const FoodTextContainer = styled.div`
   height: 100%;
   overflow: hidden;
   width: 80vw;
-
+  margin-bottom: auto;
   @media only screen and (min-width: 600px) {
     width: 18vw;
     border: 0px;
@@ -273,10 +280,10 @@ export const FoodTextContainer = styled.div`
   }
 `;
 
-export const FoodName = styled(TextFit)`
+export const FoodName = styled.div`
   font-weight: 700;
-  height: 30px;
-
+  font-size: 18px;
+  word-wrap: break-word;
   @media only screen and (max-width: 600px) {
     color: white;
     margin-top: 20px;
