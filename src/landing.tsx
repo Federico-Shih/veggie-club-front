@@ -13,7 +13,10 @@ import "aos/dist/aos.css";
 
 import Logo from "./img/logo.png";
 import ShortLogo from "./img/short-logo.png";
-import placeholder from "./img/placeholder.jpg";
+import mainImg from "./img/main.jpg";
+import firstImg from "./img/first.jpg";
+import secondImg from "./img/second.jpg";
+import thirdImg from "./img/third.jpg";
 import { ThemeContext } from "./theme";
 import { DecorationImage, LinkButton } from "./landing.styles";
 import { Link } from "react-router-dom";
@@ -41,6 +44,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@material-ui/core";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 function Landing(): ReactElement {
   const mobile = useWindowWidth() < 600;
@@ -61,6 +65,35 @@ function Landing(): ReactElement {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const ContactContainer = () => (
+    <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          paddingTop: mobile ? "10px" : "30px",
+          margin: "10px",
+        }}
+      >
+        <FontAwesomeIcon
+          icon={faMapMarker}
+          style={{ fontSize: 25, marginRight: "25px" }}
+        />
+        <a href="https://goo.gl/maps/NewR4A1Wb3He4Tdn6">Junin 1087</a>
+      </div>
+      <a
+        href="https://wa.me/5491150034171"
+        style={{ margin: "10px", color: "black" }}
+      >
+        <FontAwesomeIcon
+          icon={faWhatsapp}
+          style={{ marginRight: "20px", fontSize: 25 }}
+        />
+        +1550034171
+      </a>
+    </>
+  );
 
   return (
     <div
@@ -86,7 +119,7 @@ function Landing(): ReactElement {
         </List>
       </Drawer>
       <Header color={theme.secondary}>
-        <ImageBackground active={scrollPos > 30} src={placeholder}>
+        <ImageBackground active={scrollPos > 30} src={mainImg}>
           <LogoContainer>
             {!mobile && (
               <img
@@ -142,7 +175,7 @@ function Landing(): ReactElement {
       </SloganContainer>
       <DecorationContainer>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="300">
-          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationImage src={firstImg} alt="placeholder" />
           <DecorationText
             data-aos={!mobile ? "" : "fade-up"}
             data-aos-offset="300"
@@ -155,7 +188,7 @@ function Landing(): ReactElement {
           </DecorationText>
         </Decoration>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="400">
-          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationImage src={secondImg} alt="placeholder" />
           <DecorationText
             data-aos={!mobile ? "" : "fade-up"}
             data-aos-offset="300"
@@ -168,7 +201,7 @@ function Landing(): ReactElement {
           </DecorationText>
         </Decoration>
         <Decoration data-aos={mobile ? "" : "fade-up"} data-aos-offset="500">
-          <DecorationImage src={placeholder} alt="placeholder" />
+          <DecorationImage src={thirdImg} alt="placeholder" />
           <DecorationText
             data-aos={!mobile ? "" : "fade-up"}
             data-aos-offset="300"
@@ -219,44 +252,9 @@ function Landing(): ReactElement {
               padding: "5px",
             }}
           >
-            Lunes a Viernes de 10:00hs - 15:00hs
+            Lunes a Sábados de 10:0hs - 15:00hs
           </div>
-          <div>
-            {!mobile ? (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    paddingTop: mobile ? "10px" : "30px",
-                    margin: "10px",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faMapMarker}
-                    style={{ fontSize: 25, marginRight: "25px" }}
-                  />
-                  <a href="https://goo.gl/maps/NewR4A1Wb3He4Tdn6">Junin 1087</a>
-                </div>
-                <div style={{ margin: "10px" }}>
-                  <FontAwesomeIcon
-                    icon={faPhone}
-                    style={{ marginRight: "20px", fontSize: 25 }}
-                  />
-                  1554564455
-                </div>
-                <div style={{ margin: "10px" }}>
-                  <FontAwesomeIcon
-                    icon={faEnvelope}
-                    style={{ marginRight: "20px", fontSize: 25 }}
-                  />
-                  fedeshih@gmail.com
-                </div>
-              </>
-            ) : (
-              <></>
-            )}
-          </div>
+          <div>{!mobile ? <ContactContainer /> : <></>}</div>
         </div>
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.329169035132!2d-58.3995416847705!3d-34.59583698046152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcca9660558e29%3A0x4937e3fe81b590a4!2sVeggie%20Club!5e0!3m2!1ses-419!2sar!4v1609964546301!5m2!1ses-419!2sar"
@@ -271,33 +269,17 @@ function Landing(): ReactElement {
         />
       </InfoContainer>
       <Padding height={mobile ? 0 : 300} />
+      {mobile ? <ContactContainer /> : <></>}
+      <Padding height={mobile ? 150 : 0} />
       <Footer>
         <div style={{ margin: "10px" }}>
           <FontAwesomeIcon icon={faMapMarker} style={{ marginRight: "20px" }} />
           <a href="https://goo.gl/maps/NewR4A1Wb3He4Tdn6">Junin 1087</a>
         </div>
-        {mobile ? (
-          <>
-            <div style={{ margin: "10px" }}>
-              <FontAwesomeIcon icon={faPhone} style={{ marginRight: "20px" }} />
-              1554564455
-            </div>
-            <div style={{ margin: "10px" }}>
-              <FontAwesomeIcon
-                icon={faEnvelope}
-                style={{ marginRight: "20px" }}
-              />
-              fedeshih@gmail.com
-            </div>
-          </>
-        ) : (
-          <></>
-        )}
         <div style={{ marginLeft: "auto", alignSelf: "center" }}>
           Done by Shift
         </div>
       </Footer>
-      <Padding height={mobile ? 100 : 0} />
     </div>
   );
 }

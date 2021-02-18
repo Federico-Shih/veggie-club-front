@@ -1,6 +1,6 @@
 import styled, { css } from "styled-components";
 import { Link } from "react-router-dom";
-import placeholder from "./img/placeholder.jpg";
+import mainImg from "./img/main.jpg";
 
 export const Header = styled.div`
   display: flex;
@@ -64,14 +64,11 @@ export const ImageBackground = styled.div`
 
 export const Footer = styled.div`
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
   margin-top: 20px;
-  @media only screen and (min-width: 600px) {
-    width: 100%;
-    background-color: #e7e7e7;
-    flex-direction: row;
-  }
+  width: 100%;
+  background-color: #e7e7e7;
+  flex-direction: row;
 `;
 
 export const LogoContainer = styled.div`
@@ -111,7 +108,7 @@ export const SloganContainer = styled.div`
     height: 90vh;
     width: 100%;
     background-position: center center;
-    background-image: url(${placeholder});
+    background-image: url(${mainImg});
     box-shadow: inset 0px 4px 21px 300px rgba(0, 0, 0, 0.6);
   }
   @media only screen and (min-width: 600px) {
