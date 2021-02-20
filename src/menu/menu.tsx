@@ -46,6 +46,7 @@ import {
   createFood,
   modifyFood,
   deleteCategory,
+  logout,
 } from "./api";
 import {
   Header,
@@ -1009,9 +1010,10 @@ function Menu(): ReactElement {
         <SwitchButton
           icon={!admin ? faCog : faSignOutAlt}
           color="white"
-          onClick={() => {
+          onClick={async () => {
             if (admin) {
               history.push("/menu");
+              await logout();
             } else {
               setLog(true);
             }

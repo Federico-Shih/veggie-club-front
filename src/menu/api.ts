@@ -39,6 +39,10 @@ export const login = async ({
   return Promise.resolve(res.status === 200);
 };
 
+export const logout = async (): Promise<void> => {
+  await axios.post("/logout");
+};
+
 export const getCategories = async (): Promise<Category[]> => {
   const categories = await axios.get("/categories");
   const parsedCategories = categories.data.map(
