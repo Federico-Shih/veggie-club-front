@@ -168,7 +168,7 @@ function Landing(): ReactElement {
       <SloganContainer id="NOSOTROS">
         <div>SE TRATA DE COMER BIEN</div>
         {mobile ? (
-          <LinkButton to="/menu">Conocé nuestro menu!</LinkButton>
+          <LinkButton to="/menu">Conocé nuestro menú!</LinkButton>
         ) : (
           <></>
         )}
@@ -252,7 +252,7 @@ function Landing(): ReactElement {
               padding: "5px",
             }}
           >
-            Lunes a Sábados de 10:0hs - 15:00hs
+            Lunes a Sábados de 10:00hs - 15:00hs
           </div>
           <div>{!mobile ? <ContactContainer /> : <></>}</div>
         </div>
