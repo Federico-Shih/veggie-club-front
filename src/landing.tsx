@@ -158,7 +158,7 @@ function Landing(): ReactElement {
         {!mobile ? (
           <ButtonContainer>
             <StyledPageMark href="#NOSOTROS">NOSOTROS</StyledPageMark>
-            <StyledLink to="/menu">MENU</StyledLink>
+            <StyledLink to="/menu">MENÚ</StyledLink>
             <StyledPageMark href="#CONTACTO">CONTACTO</StyledPageMark>
           </ButtonContainer>
         ) : (
@@ -252,7 +252,7 @@ function Landing(): ReactElement {
               padding: "5px",
             }}
           >
-            Lunes a Sábados de 10:00hs - 15:00hs
+            Lunes a Sábados de 10:30hs - 15:00hs
           </div>
           <div>{!mobile ? <ContactContainer /> : <></>}</div>
         </div>
