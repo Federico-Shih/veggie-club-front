@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {
   useState,
@@ -79,11 +80,12 @@ import {
   Category,
   AlertLevel,
 } from "../types";
-import { CategoryEditor, FoodEditor } from "./menu.components";
 import { CategoryNotSavedError, FoodNotSavedError } from "./errors";
 import { Food, Day } from "../types";
 import { deleteFood } from "./api";
 import { AlertContext } from "../events";
+import { CategoryEditor } from "./components/CategoryEditor";
+import { FoodEditor } from "./components/FoodEditor";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -145,7 +147,7 @@ function NormalMenu() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(false);
 
-  const [selectedDay, setDay] = useState(new Date().getDay());
+  const [selectedDay, setDay] = useState<Day>(new Date().getDay());
   const [selectedCategory, setCategory] = useState(NullCategory);
   const [showedFood, setShowedFood] = useState(NullFood);
   const [categories, setCategories] = useState(NullCategoryArray);
@@ -174,7 +176,7 @@ function NormalMenu() {
         day ?? selectedDay
       );
       setFoods(foodCall);
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         const { status } = err.response;
         if (status === 404) {
@@ -207,14 +209,12 @@ function NormalMenu() {
     };
     try {
       getCategoriesCall();
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
-        if (err.response) {
-          setAlert({
-            message: "ERROR DE SERVIDOR",
-            level: AlertLevel.error,
-          });
-        }
+        setAlert({
+          message: "ERROR DE SERVIDOR",
+          level: AlertLevel.error,
+        });
       }
     }
     setLoadingCategory(false);
@@ -230,7 +230,7 @@ function NormalMenu() {
           day
         );
         setFoods(foodCall);
-      } catch (err) {
+      } catch (err: any) {
         if (err.response) {
           const { status } = err.response;
           if (status === 404) {
@@ -402,7 +402,7 @@ function AdminMenu() {
     try {
       const foodCall = await getFoodsByDayAndCategory(category.id);
       setFoods(foodCall);
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         const { status } = err.response;
         if (status === 404) {
@@ -436,7 +436,7 @@ function AdminMenu() {
     };
     try {
       getCategoriesCall();
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         setAlert({ message: "ERROR DE SERVIDOR", level: AlertLevel.error });
       }
@@ -457,7 +457,7 @@ function AdminMenu() {
         } else {
           throw new CategoryNotSavedError();
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.response) {
           if (err.response.status === 401) {
             setAlert({
@@ -490,7 +490,7 @@ function AdminMenu() {
         } else {
           modifiedCategory = await modifyCategory(savedCategory);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.response) {
           if (err.response.status === 401) {
             setAlert({
@@ -543,7 +543,7 @@ function AdminMenu() {
         } else {
           throw new FoodNotSavedError();
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.response) {
           const { status } = err.response;
           if (status === 401) {
@@ -586,7 +586,7 @@ function AdminMenu() {
         } else {
           throw new FoodNotSavedError();
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.response) {
           const { status } = err.response;
           if (status === 401) {
@@ -625,7 +625,7 @@ function AdminMenu() {
       const newFoods = foods.filter((food) => food.id !== foodId);
       setFoods(newFoods);
       setShowedFood({ show: false });
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         const { status } = err.response;
         if (status === 401) {
@@ -659,7 +659,7 @@ function AdminMenu() {
         try {
           const foodCall = await getFoodsByDayAndCategory(newCategories[0].id);
           setFoods(foodCall);
-        } catch (err) {
+        } catch (err: any) {
           if (err.response) {
             const { status } = err.response;
             if (status === 401) {
@@ -689,7 +689,7 @@ function AdminMenu() {
         history.push(`${path}`);
       }
       setCategoryEditor({ show: false });
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         const { status } = err.response;
         if (status === 401) {
@@ -935,7 +935,7 @@ function Menu(): ReactElement {
           setUser("");
           setPass("");
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.status === 401) {
           setError(true);
           return;
