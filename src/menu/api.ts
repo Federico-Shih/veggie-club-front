@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Category, Day, Food } from "../types";
-import { CustomError } from './errors';
+import { CustomError } from "./errors";
 
 const serverURL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
@@ -66,7 +66,7 @@ export const getFoodsByDayAndCategory = async (
   const res = await axios.get("/foods", {
     params: {
       categoryId,
-      day,
+      day: day === Day.Sunday ? -1 : day,
     },
   });
 
